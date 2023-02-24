@@ -220,6 +220,75 @@ class PivotProcessDataTests(unittest.TestCase):
 
         self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
 
+class CleanProcessDataWithOutliersTests(unittest.TestCase):
+    def test_clean_process_data_with_outliers_with_data(self):
+        data = [{'timestamp': '2023-02-23 23:23:00', 'tag_1': 12.3, 'tag_2': 121.44}
+              , {'timestamp': '2023-02-23 23:24:00', 'tag_1': 1.3, 'tag_2': 421.44}
+              , {'timestamp': '2023-02-23 23:25:00', 'tag_1': 2.3, 'tag_2': 321.44}
+              , {'timestamp': '2023-02-23 23:26:00', 'tag_1': 100.3, 'tag_2': 21.44}
+              , {'timestamp': '2023-02-24 23:26:00', 'tag_1': 110.0, 'tag_2': 21.44}
+              , {'timestamp': '2023-02-24 23:26:00', 'tag_1': 1100.3, 'tag_2': 300.44}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        outliers_info_dict = {'tag_1': [10, 110], 'tag_2': [300, 350]}
+        spark_df_actual = clean_process_data_with_outliers(spark_df_test, outliers_info_dict)
+        
+        expected_data = [{'timestamp': '2023-02-23 23:23:00', 'tag_1': 12.3, 'tag_2': None}
+                       , {'timestamp': '2023-02-23 23:24:00', 'tag_1': None, 'tag_2': None}
+                       , {'timestamp': '2023-02-23 23:25:00', 'tag_1': None, 'tag_2': 321.44}
+                       , {'timestamp': '2023-02-23 23:26:00', 'tag_1': 100.3, 'tag_2': None}
+                       , {'timestamp': '2023-02-24 23:26:00', 'tag_1': 110.0, 'tag_2': None}
+                       , {'timestamp': '2023-02-24 23:26:00', 'tag_1': None, 'tag_2': 300.44}
+                        ]
+        spark_df_expected = spark.createDataFrame(expected_data)
+        
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+        
+    def test_clean_process_data_with_outliers_with_no_data(self):
+        empty_schema = StructType([StructField('timestamp', StringType(), True)
+                                 , StructField('tag_1', StringType(), True)
+                                 , StructField('tag_2', StringType(), True)
+                                 , StructField('tag_3', StringType(), True)
+                                 ])
+        spark_df_empty = spark.createDataFrame([], schema = empty_schema)
+        outliers_info_dict = {'tag_1': [10, 110], 'tag_2': [300, 350]}
+        spark_df_actual = clean_process_data_with_outliers(spark_df_empty, outliers_info_dict)
+        
+        spark_df_expected = spark.createDataFrame([], schema = empty_schema)
+        
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+        
+    def test_clean_process_data_with_outliers_with_data_one_tag_filter(self):
+        data = [{'timestamp': '2023-02-23 23:23:00', 'tag_1': 12.3, 'tag_2': 121.44}
+              , {'timestamp': '2023-02-23 23:24:00', 'tag_1': 1.3, 'tag_2': 421.44}
+              , {'timestamp': '2023-02-23 23:25:00', 'tag_1': 2.3, 'tag_2': 321.44}
+              , {'timestamp': '2023-02-23 23:26:00', 'tag_1': 100.3, 'tag_2': 21.44}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        outliers_info_dict = {'tag_1': [10, 110]}
+        spark_df_actual = clean_process_data_with_outliers(spark_df_test, outliers_info_dict)
+        
+        expected_data = [{'timestamp': '2023-02-23 23:23:00', 'tag_1': 12.3, 'tag_2': 121.44}
+                       , {'timestamp': '2023-02-23 23:24:00', 'tag_1': None, 'tag_2': 421.44}
+                       , {'timestamp': '2023-02-23 23:25:00', 'tag_1': None, 'tag_2': 321.44}
+                       , {'timestamp': '2023-02-23 23:26:00', 'tag_1': 100.3, 'tag_2': 21.44}
+                        ]
+        spark_df_expected = spark.createDataFrame(expected_data)
+        
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+
 # COMMAND ----------
 
 # A simple way to check. Definitely not the best because it fails when there are duplicates!
