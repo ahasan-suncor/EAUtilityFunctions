@@ -150,3 +150,80 @@ class FilterPriorityProcessDataTests(unittest.TestCase):
         actual_tags_in_col = spark_df_filtered.select('tag_name').distinct()
         expected_tags_in_col = []
         self.assertTrue(expected_tags_in_col == expected_tags_in_col)
+        
+class PivotProcessDataTests(unittest.TestCase):
+    def test_pivot_process_data_multiple_tags(self):
+        data = [{'timestamp': '2023-02-23 23:23:02', 'tag_name': 'tag_1', 'value': 121.44}
+              , {'timestamp': '2023-02-23 23:23:12', 'tag_name': 'tag_1', 'value': 121.44}
+              , {'timestamp': '2023-02-23 23:23:02', 'tag_name': 'tag_2', 'value': 121.44}
+              , {'timestamp': '2023-02-23 23:23:02', 'tag_name': 'tag_3', 'value': 121.44}
+              , {'timestamp': '2023-02-23 23:23:22', 'tag_name': 'tag_3', 'value': 121.44}
+              , {'timestamp': '2023-02-23 23:23:32', 'tag_name': 'tag_3', 'value': 121.44}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        spark_df_actual = pivot_process_data(spark_df_test, pivot_column_name = 'tag_name', aggregate_column_name = 'value')
+        
+        expected_data = [{'timestamp': '2023-02-23 23:23:02', 'tag_1': 121.44, 'tag_2': 121.44, 'tag_3': 121.44}
+                       , {'timestamp': '2023-02-23 23:23:32', 'tag_1': None, 'tag_2': None, 'tag_3': 121.44}
+                       , {'timestamp': '2023-02-23 23:23:12', 'tag_1': 121.44, 'tag_2': None, 'tag_3': None}
+                       , {'timestamp': '2023-02-23 23:23:22', 'tag_1': None, 'tag_2': None, 'tag_3': 121.44}
+                        ]
+        spark_df_expected = spark.createDataFrame(expected_data)
+        
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+        
+    def test_pivot_process_data_no_aggregation(self):
+        data = [{'timestamp': '2023-02-23 23:23:02', 'tag_name': 'tag_1', 'value': 121.44}
+              , {'timestamp': '2023-02-21 23:23:12', 'tag_name': 'tag_1', 'value': 121.44}
+              , {'timestamp': '2023-02-24 23:23:02', 'tag_name': 'tag_2', 'value': 121.44}
+              , {'timestamp': '2023-02-26 23:23:22', 'tag_name': 'tag_2', 'value': 121.44}
+              , {'timestamp': '2023-02-27 23:23:32', 'tag_name': 'tag_3', 'value': 121.44}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        spark_df_actual = pivot_process_data(spark_df_test, pivot_column_name = 'tag_name', aggregate_column_name = 'value')
+        
+        expected_data = [{'timestamp': '2023-02-23 23:23:02', 'tag_1': 121.44, 'tag_2': None, 'tag_3': None}
+                       , {'timestamp': '2023-02-21 23:23:12', 'tag_1': 121.44, 'tag_2': None, 'tag_3': None}
+                       , {'timestamp': '2023-02-24 23:23:02', 'tag_1': None, 'tag_2': 121.44, 'tag_3': None}
+                       , {'timestamp': '2023-02-26 23:23:22', 'tag_1': None, 'tag_2': 121.44, 'tag_3': None}
+                       , {'timestamp': '2023-02-27 23:23:32', 'tag_1': None, 'tag_2': None, 'tag_3': 121.44}
+                        ]
+        spark_df_expected = spark.createDataFrame(expected_data)
+        
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+        
+    def test_pivot_process_data_one_tag(self):
+        data = [{'timestamp': '2023-02-23 23:23:02', 'tag_name': 'tag_1', 'value': 12.44}
+              , {'timestamp': '2023-02-21 23:23:12', 'tag_name': 'tag_1', 'value': 34.44}
+              , {'timestamp': '2023-02-24 23:23:02', 'tag_name': 'tag_1', 'value': 34.44}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        spark_df_actual = pivot_process_data(spark_df_test, pivot_column_name = 'tag_name', aggregate_column_name = 'value')
+        
+        expected_data = [{'timestamp': '2023-02-23 23:23:02', 'tag_1': 12.44}
+                       , {'timestamp': '2023-02-21 23:23:12', 'tag_1': 34.44}
+                       , {'timestamp': '2023-02-24 23:23:02', 'tag_1': 34.44}
+                        ]
+        spark_df_expected = spark.createDataFrame(expected_data)
+        
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+
+# COMMAND ----------
+
+# A simple way to check. Definitely not the best because it fails when there are duplicates!
+def is_actual_df_equal_to_expected_df(df_actual, df_expected):
+    if df_actual.subtract(df_expected).rdd.isEmpty():
+        return df_expected.subtract(df_actual).rdd.isEmpty()
+    return False
