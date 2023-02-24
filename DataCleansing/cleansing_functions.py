@@ -144,3 +144,35 @@ def fill_timeseries_x_interval(spark_df: SparkDataFrame, timeseries_column_name:
                                             .drop(spark_df[timeseries_column_name])
                   
     return joined_df
+
+def rollup_and_agg_process_data_x_min(spark_df: SparkDataFrame, tag_agg_dict: Dict[str, str], interval_minutes: int = 60, timestamp_column_name: str = 'timestamp') -> SparkDataFrame:
+    """
+    Groups by and aggregates the data for each tag column in a Spark DataFrame.
+
+    Args:
+        spark_df: The Spark DataFrame to group by and aggregate.
+        tag_agg_dict: A dictionary with tag column names as keys and aggregation functions as values.
+        interval_minutes: The time interval in minutes to group by.
+        timestamp_column_name: The name of the timestamp column.
+
+    Returns:
+        SparkDataFrame: The Spark DataFrame with the data grouped by and aggregated.
+
+    Assumptions:
+        The column names in tag_agg_dict are present in the spark_df.
+        The aggregate functions in tag_agg_dict are valid aggreagate functions found in pyspark.sql.functions.
+    """
+
+    spark_df = spark_df.withColumn('unix_timestamp', unix_timestamp(col(timestamp_column_name)))
+
+    unix_timestamp_rounded_nearest_interval_column = spark_df.unix_timestamp - spark_df.unix_timestamp % (interval_minutes * 60)
+    time_interval_column = from_unixtime(unix_timestamp_rounded_nearest_interval_column, 'yyyy-MM-dd HH:mm:ss').alias(timestamp_column_name)
+
+    # Create a list of tag columns and their corresponding aggregation functions.
+    tag_agg_column = [getattr(psf, agg_func)(col(tag_column_name)).alias(tag_column_name) for tag_column_name, agg_func in tag_agg_dict.items()]
+
+    spark_df = spark_df.groupBy(time_interval_column) \
+                       .agg(*tag_agg_column) \
+                       .drop("unix_timestamp")
+
+    return spark_df
