@@ -46,3 +46,22 @@ def rename_columns_after_agg(spark_df: SparkDataFrame) -> SparkDataFrame:
 
     renamed_spark_df  = spark_df.select(renamed_columns)
     return renamed_spark_df
+
+def filter_priority_process_data(spark_df: SparkDataFrame, priority_tags_dict: Dict[str, List[str]]) -> SparkDataFrame:
+    """
+    Filters a Spark DataFrame based on a list of priority tags.
+
+    Args:
+        spark_df: The Spark DataFrame to filter.
+        priority_tags_dict: A dictionary of the tag column name and list.
+            - The key is the name of the column containing the tags.
+            - The values is the list of priority tags to filter on.
+
+    Returns:
+        SparkDataFrame: The Spark DataFrame filtered to include only rows with priority tags.
+    """
+
+    tag_column_name = priority_tags_dict['tag_column_name']
+    priority_tags = priority_tags_dict['priority_tags']
+
+    return spark_df.filter(col(tag_column_name).isin(priority_tags))
