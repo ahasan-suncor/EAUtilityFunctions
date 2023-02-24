@@ -89,3 +89,28 @@ def pivot_process_data(spark_df: SparkDataFrame, pivot_column_name: str, aggrega
                                .agg(first(col(aggregate_column_name)))
 
     return spark_df_pivoted
+
+def clean_process_data_with_outliers(spark_df: SparkDataFrame, outliers_info_dict: Dict[str, List[float]]) -> SparkDataFrame:
+    """
+    Cleans column values in a Spark DataFrame based on outlier ranges and returns the result.
+
+    Args:
+        spark_df: The Spark DataFrame to filter.
+        outliers_info_dict: A dictionary containing the outlier ranges for each column to filter.
+                            The keys are column names.
+                            The values are lists containing the minimum and maximum values for each column.
+
+    Returns:
+        SparkDataFrame: The filtered Spark DataFrame. NULL if the column is out of range.
+
+    Assumptions: 
+        The column names in outliers_info are present in the spark_df.
+        The values in outliers_info are [min, max] where min and max are inclusive.
+    """
+
+    for col_name, (min_val, max_val) in outliers_info_dict.items():
+        spark_df = spark_df.withColumn(col_name, when((col(col_name) >= min_val) 
+                                                    & (col(col_name) <= max_val)
+                                               , col(col_name)) \
+                                                 .otherwise(None))
+    return spark_df
