@@ -39,3 +39,34 @@ class NormalizeColumnsTests(unittest.TestCase):
         actual_columns = normalized_df.columns
         expected_columns = ['', 'col_@_2', 'col!_4', 'col_on$e', '(fine_column)']
         self.assertCountEqual(expected_columns, actual_columns)
+        
+class RenameColumnsAfterAggTests(unittest.TestCase):
+    def test_rename_columns_after_agg_with_data(self):
+        data = [{'timestamp': '2023-02-23 23:23:02', 'first(tag_1)': 12.3, 'max(tag_2)': 121.44}
+              , {'timestamp': '2023-02-23 23:23:12', 'first(tag_1)': 1.3, 'max(tag_2)': 421.44}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        normalized_df = rename_columns_after_agg(spark_df_test)
+        actual_columns = normalized_df.columns
+        expected_columns = expected_columns = ['timestamp', 'tag_1', 'tag_2']
+        self.assertCountEqual(expected_columns, actual_columns)
+    
+    def test_rename_columns_after_agg_with_single_column(self):
+        data = [{'max(tag_2)': 121.44}]
+        spark_df_test = spark.createDataFrame(data)
+        normalized_df = rename_columns_after_agg(spark_df_test)
+        actual_columns = normalized_df.columns
+        expected_columns = expected_columns = ['tag_2']
+        self.assertCountEqual(expected_columns, actual_columns)
+        
+    def test_rename_columns_after_agg_with_empty_df(self):
+        empty_schema = StructType([StructField('column one', StringType(), True)
+                                 , StructField('min(COLUMnTwO)', StringType(), True)
+                                 , StructField('(column three)', StringType(), True)
+                                 , StructField('', StringType(), True)
+                                 ])
+        spark_df_empty = spark.createDataFrame([], schema = empty_schema)
+        normalized_df = rename_columns_after_agg(spark_df_empty)
+        actual_columns = normalized_df.columns
+        expected_columns = expected_columns = ['column one', 'COLUMnTwO', 'column three', '']
+        self.assertCountEqual(expected_columns, actual_columns)
