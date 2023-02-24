@@ -114,3 +114,33 @@ def clean_process_data_with_outliers(spark_df: SparkDataFrame, outliers_info_dic
                                                , col(col_name)) \
                                                  .otherwise(None))
     return spark_df
+
+def fill_timeseries_x_interval(spark_df: SparkDataFrame, timeseries_column_name: str = 'timestamp', interval_minutes: int = 1) -> SparkDataFrame:
+    """
+    Fills in gaps in a time series by joining with another dataframe containing all rows for the specified interval.
+
+    Args:
+        spark_df: The Spark DataFrame to fill in.
+        timestamp_column: The name of the column containing the timestamp data.
+        interval_minutes: The interval (in minutes) at which to fill gaps in the time series.
+
+    Returns:
+        SparkDataFrame: The Spark DataFrame with missing timestamps filled in with NULL values.
+    """
+
+    start_time_unix, end_time_unix = spark_df.selectExpr(f'min(unix_timestamp({timeseries_column_name}))',
+                                                         f'max(unix_timestamp({timeseries_column_name}))') \
+                                             .first()
+
+    # Generate a DataFrame of evenly spaced timestamps for the specified interval.
+    spark_df_expected_timestamps = spark.range(start = start_time_unix
+                                             , end = end_time_unix + 60 * interval_minutes # end inclusive
+                                             , step = (60 * interval_minutes)) \
+                                        .select(from_unixtime(col('id')).alias(timeseries_column_name))
+
+    joined_df = spark_df_expected_timestamps.join(spark_df
+                                                , on = spark_df[timeseries_column_name] == spark_df_expected_timestamps[timeseries_column_name]
+                                                , how = 'fullouter') \
+                                            .drop(spark_df[timeseries_column_name])
+                  
+    return joined_df
