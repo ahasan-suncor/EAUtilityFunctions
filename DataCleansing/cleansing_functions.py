@@ -65,3 +65,27 @@ def filter_priority_process_data(spark_df: SparkDataFrame, priority_tags_dict: D
     priority_tags = priority_tags_dict['priority_tags']
 
     return spark_df.filter(col(tag_column_name).isin(priority_tags))
+
+def pivot_process_data(spark_df: SparkDataFrame, pivot_column_name: str, aggregate_column_name: str) -> SparkDataFrame:
+    """
+    Pivots a column in a Spark DataFrame and returns the result.
+
+    Args:
+        spark_df: The PySpark DataFrame to pivot.
+        pivot_column_name: The name of the column to pivot on.
+        aggregate_column_name: The name of the column to aggregate.
+
+    Returns:
+        SparkDataFrame: The Spark DataFrame with the specified column pivoted.
+
+    Assumptions:
+        There is only one column being pivoted, and only one column being aggregated.
+    """
+
+    fixed_columns = [col_name for col_name in spark_df.columns if col_name not in (pivot_column_name, aggregate_column_name)]
+
+    spark_df_pivoted = spark_df.groupBy(*fixed_columns) \
+                               .pivot(pivot_column_name) \
+                               .agg(first(col(aggregate_column_name)))
+
+    return spark_df_pivoted
