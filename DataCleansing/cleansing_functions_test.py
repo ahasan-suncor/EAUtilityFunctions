@@ -355,6 +355,36 @@ class FillTimeseriesXIntervalTests(unittest.TestCase):
 
 #         self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
 
+class RollupAndAggProcessDataXMinTests(unittest.TestCase):
+    def test_rollup_and_agg_process_data_x_min_with_multiple_data(self):
+        data = [{'timestamp': '2023-02-23 23:23:00', 'tag_1': 12.3, 'tag_2': 121.44, 'tag_3': 23.0}
+              , {'timestamp': '2023-02-23 22:24:00', 'tag_1': 1.3, 'tag_2': 421.44, 'tag_3': 121.0}
+              , {'timestamp': '2023-02-23 23:25:00', 'tag_1': 112.3, 'tag_2': 221.44, 'tag_3': 2.0}
+              , {'timestamp': '2023-02-23 22:26:00', 'tag_1': 12.3, 'tag_2': 121.44, 'tag_3': 34.0}
+              , {'timestamp': '2023-02-24 23:26:00', 'tag_1': 10.0, 'tag_2': 21.44, 'tag_3': 89.0}
+              , {'timestamp': '2023-02-24 22:26:00', 'tag_1': 100.0, 'tag_2': 200.44, 'tag_3': 464.0}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        tag_agg_dict = {'tag_1': 'max'
+                      , 'tag_2': 'mean'
+                      , 'tag_3': 'sum'
+                       }
+        spark_df_actual = rollup_and_agg_process_data_x_min(spark_df_test, tag_agg_dict)
+        
+        expected_data = [{'timestamp': '2023-02-23 22:00:00', 'tag_1': 12.3, 'tag_2': 271.44, 'tag_3': 155.0}
+                       , {'timestamp': '2023-02-23 23:00:00', 'tag_1': 112.3, 'tag_2': 171.44, 'tag_3': 25.0}
+                       , {'timestamp': '2023-02-24 23:00:00', 'tag_1': 10.0, 'tag_2': 21.44, 'tag_3': 89.0}
+                       , {'timestamp': '2023-02-24 22:00:00', 'tag_1': 100.0, 'tag_2': 200.44, 'tag_3': 464.0}
+                        ]
+        
+        spark_df_expected = spark.createDataFrame(expected_data)
+                
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+
 # COMMAND ----------
 
 # A simple way to check. Definitely not the best because it fails when there are duplicates!
