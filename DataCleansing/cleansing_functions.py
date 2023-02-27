@@ -65,6 +65,26 @@ def filter_priority_process_data(spark_df: SparkDataFrame, priority_tags_dict: D
     priority_tags = priority_tags_dict['priority_tags']
 
     return spark_df.filter(col(tag_column_name).isin(priority_tags))
+  
+def type_cast_tag_data(spark_df: SparkDataFrame, tags_data_type_dict: Dict[str, str]) -> SparkDataFrame:
+    """
+    Type casts the columns of a Spark DataFrame according to the specified data types for each column.
+
+    Args:
+        spark_df: A Spark DataFrame containing the data to type cast.
+        tags_data_type_dict: A dictionary where the keys are the column names (tags) to type-cast 
+                             and the values are the corresponding data types to cast the columns to.
+                             The data types must be in the format supported by PySpark's `cast()` method,
+                             e.g. 'integer', 'double', 'timestamp', 'date', 'boolean', etc.
+
+    Returns:
+        DataFrame: A new Spark DataFrame with the columns type casted according to the specified data types.
+    """
+
+    for tag, data_type in tags_data_type_dict.items():
+        if tag in spark_df.columns:
+            spark_df = spark_df.withColumn(tag, col(tag).cast(data_type))
+    return spark_df
 
 def pivot_process_data(spark_df: SparkDataFrame, pivot_column_name: str, aggregate_column_name: str) -> SparkDataFrame:
     """

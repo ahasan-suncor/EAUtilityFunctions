@@ -151,6 +151,67 @@ class FilterPriorityProcessDataTests(unittest.TestCase):
         expected_tags_in_col = []
         self.assertTrue(expected_tags_in_col == expected_tags_in_col)
         
+class TypeCastTagDataTests(unittest.TestCase):
+    def test_type_cast_tag_data_double(self):
+        actual_data = [{'timestamp': '2023-02-23 23:23:02', 'tag_1': 121.44, 'tag_2': 32.9}
+                     , {'timestamp': '2023-02-23 23:23:02', 'tag_1': 120.1, 'tag_2': 89.2}
+                     , {'timestamp': '2023-02-23 23:23:02', 'tag_1': 11.44, 'tag_2': 23.8}
+                      ]
+        spark_df_test = spark.createDataFrame(actual_data)
+        tags_data_type_dict = {'tag_1': 'double'
+                             , 'tag_2': 'double'
+                               }
+        spark_df_actual = type_cast_tag_data(spark_df_test, tags_data_type_dict)
+        
+        expected_schema = {'timestamp': 'string', 'tag_1': 'double', 'tag_2': 'double'}
+                
+        for field in expected_schema:
+            self.assertEqual(spark_df_actual.schema[field].dataType.simpleString(), expected_schema[field])
+            
+    def test_type_cast_tag_data_string(self):
+        actual_data = [{'timestamp': '2023-02-23 23:23:02', 'tag_1': '121.44', 'tag_2': '32.9'}
+                     , {'timestamp': '2023-02-23 23:23:02', 'tag_1': '120.1', 'tag_2': '89.2'}
+                     , {'timestamp': '2023-02-23 23:23:02', 'tag_1': '11.44', 'tag_2': '23.8'}
+                      ]
+        spark_df_test = spark.createDataFrame(actual_data)
+        tags_data_type_dict = {'tag_1': 'double'
+                             , 'tag_2': 'double'
+                               }
+        spark_df_actual = type_cast_tag_data(spark_df_test, tags_data_type_dict)
+        
+        expected_schema = {'timestamp': 'string', 'tag_1': 'double', 'tag_2': 'double'}
+                
+        for field in expected_schema:
+            self.assertEqual(spark_df_actual.schema[field].dataType.simpleString(), expected_schema[field])
+            
+    def test_type_cast_tag_data_mixed(self):
+        actual_data = [{'timestamp': '2023-02-23 23:23:02', 'tag_1': '121.44', 'tag_2': 'Calc Failed'}
+                     , {'timestamp': '2023-02-23 23:23:02', 'tag_1': 'BAD', 'tag_2': '89.2'}
+                     , {'timestamp': '2023-02-23 23:23:02', 'tag_1': '11.44', 'tag_2': '23.8'}
+                      ]
+        spark_df_test = spark.createDataFrame(actual_data)
+        tags_data_type_dict = {'tag_1': 'double'
+                             , 'tag_2': 'double'
+                               }
+        spark_df_actual = type_cast_tag_data(spark_df_test, tags_data_type_dict)
+        
+        expected_schema = {'timestamp': 'string', 'tag_1': 'double', 'tag_2': 'double'}
+                
+        for field in expected_schema:
+            self.assertEqual(spark_df_actual.schema[field].dataType.simpleString(), expected_schema[field])
+            
+    def test_type_cast_tag_data_with_invalid_types(self):
+        actual_data = [{'timestamp': '2023-02-23 23:23:02', 'tag_1': 121.44}
+                     , {'timestamp': '2023-02-23 23:23:02', 'tag_1': 120.1}
+                     , {'timestamp': '2023-02-23 23:23:02', 'tag_1': 11.44}
+                      ]
+        spark_df_test = spark.createDataFrame(actual_data)
+        tags_data_type_dict = {'tag_1': 'integer'}
+        spark_df_actual = type_cast_tag_data(spark_df_test, tags_data_type_dict)
+        
+        with self.assertRaises(Exception):
+            type_cast_tag_data(self.spark_df_test, tags_data_type_dict)
+        
 class PivotProcessDataTests(unittest.TestCase):
     def test_pivot_process_data_multiple_tags(self):
         data = [{'timestamp': '2023-02-23 23:23:02', 'tag_name': 'tag_1', 'value': 121.44}
