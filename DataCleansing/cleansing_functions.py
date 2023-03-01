@@ -4,6 +4,7 @@ from pyspark.sql.functions import col, lower, first, when, unix_timestamp, from_
 from pyspark.sql import DataFrame as SparkDataFrame
 from typing import Dict, List
 import pandas as pd
+import numpy as np
 
 def normalize_column_names(spark_df: SparkDataFrame) -> SparkDataFrame:
     """
@@ -219,4 +220,26 @@ def replace_outliers_with_null(pandas_df: pd.DataFrame, outliers_info_dict: Dict
     for col_name, (min_val, max_val) in outliers_info_dict.items():
         pandas_df[col_name] = pandas_df[col_name].where((pandas_df[col_name] >= min_val) & (pandas_df[col_name] <= max_val))
     
+    return pandas_df
+
+# FUNCTION WAS RENAMED FROM 'identify_outliers'
+def add_outlier_flag(pandas_df: pd.DataFrame, columns_names: List[str], percentile: float) -> pd.DataFrame:
+    """
+    Add a column to the dataframe identifying values that fall outside of a certain percentile range.
+    
+    Args:
+        pandas_df: The input dataframe.
+        columns_names: A list of column names to flag outliers in.
+        percentile: The percentile value to use as the threshold for identifying outliers.
+    
+    Returns:
+        DataFrame: A Pandas DataFrame with an additional column '_is_outlier_flag' that indicates if each row is an outlier (Y) or not (N).
+    """
+
+    for column in columns_names:
+        col_data = pandas_df[column]
+        # Calculate the lower and upper bounds for the specified percentile parameter for the data in the column.
+        lower_bound, upper_bound = col_data.quantile([1 - percentile, percentile])
+        pandas_df[column + '_is_outlier_flag'] = np.where((col_data > upper_bound) | (col_data < lower_bound), 'Y', 'N')
+        
     return pandas_df

@@ -477,6 +477,28 @@ class ReplaceOutliersWithNullTests(unittest.TestCase):
         expected_output = self.pandas_df_test
         pd.testing.assert_frame_equal(pandas_df_actual, expected_output)
 
+class TestAddOutlierFlag(unittest.TestCase):
+
+    def setUp(self):
+        self.pandas_df_test = pd.DataFrame({
+            'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                       , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                       , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                       , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                       , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                       , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                       , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                       , '2022-06-01 6:21']
+         , 'tag_flow_2': [61, 56, 40, 8, 8, 65, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, 64, 56]
+        })
+        self.pandas_df_test.set_index('datetime', inplace = True)
+
+    def test_add_outlier_flag_single_column(self):
+        pandas_df_actual = add_outlier_flag(self.pandas_df_test, ['tag_flow_2'], percentile = 0.9)
+        actual_tag_flow_2_outlier_flags= list(pandas_df_actual['tag_flow_2_is_outlier_flag'])
+        expected_tag_flow_2_outlier_flags = ['Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'Y', 'N']
+        self.assertTrue('tag_flow_2_is_outlier_flag' in pandas_df_actual)
+        self.assertEqual(actual_tag_flow_2_outlier_flags, expected_tag_flow_2_outlier_flags)
 
 # COMMAND ----------
 
