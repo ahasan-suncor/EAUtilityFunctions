@@ -1,8 +1,4 @@
 # Databricks notebook source
-pip install scikit-learn
-
-# COMMAND ----------
-
 import pandas as pd
 import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score
@@ -59,7 +55,7 @@ def calculate_regression_metrics(pandas_df: pd.DataFrame) -> dict:
 
     mape = np.mean(np.abs((y_actual - y_pred) / y_actual))
     mae = mean_absolute_error(y_actual, y_pred)
-    rmse = mean_squared_error(y_actual, y_pred, squared = False)
+    rmse = mean_squared_error(y_actual, y_pred, squared = True)
 
     metrics = {'MAPE': mape
              , 'MAE': mae
