@@ -3,6 +3,7 @@ import pyspark.sql.functions as psf
 from pyspark.sql.functions import col, lower, first, when, unix_timestamp, from_unixtime
 from pyspark.sql import DataFrame as SparkDataFrame
 from typing import Dict, List
+import pandas as pd
 
 def normalize_column_names(spark_df: SparkDataFrame) -> SparkDataFrame:
     """
@@ -196,3 +197,26 @@ def rollup_and_agg_process_data_x_min(spark_df: SparkDataFrame, tag_agg_dict: Di
                        .drop("unix_timestamp")
 
     return spark_df
+  
+# FUNCTION WAS RENAMED FROM 'remove_values' AND THE PARAMETERS WERE CHANGED. THIS IS THE SAME AS "clean_process_data_with_outliers" BUT FOR A PANDAS DF????
+def replace_outliers_with_null(pandas_df: pd.DataFrame, outliers_info_dict: Dict[str, List[float]] = {}) -> pd.DataFrame:
+    """
+    Replaces values outside the specified range with NULLs for specified columns and returns the filtered DataFrame.
+    
+    Args:
+        pandas_df: Input pandas dataframe
+        columns_filter_info_dict: Dictionary containing outlier ranges for each column.
+                                  The keys are column names.
+                                  The values are a list containing minimum and maximum ranges.
+        
+    Returns:
+        DataFrame: Pandas DataFrame after replacing values below the lower range and above the upper range with nulls.
+        
+    Assumptions:
+        The values in outliers_info are [min, max] where min and max are inclusive.
+    """
+    
+    for col_name, (min_val, max_val) in outliers_info_dict.items():
+        pandas_df[col_name] = pandas_df[col_name].where((pandas_df[col_name] >= min_val) & (pandas_df[col_name] <= max_val))
+    
+    return pandas_df
