@@ -390,31 +390,31 @@ class FillTimeseriesXIntervalTests(unittest.TestCase):
 
         self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
 
-#     def test_fill_timeseries_x_interval_multiple_gaps_to_fill_hour(self):
-#         data = [{'timestamp': '2023-02-23 13:23:00', 'tag_1': 1, 'tag_2': 12}
-#               , {'timestamp': '2023-02-23 13:25:00', 'tag_1': 3, 'tag_2': 102}
-#               , {'timestamp': '2023-02-23 13:23:00', 'tag_1': 3, 'tag_2': 102}
-#               , {'timestamp': '2023-02-23 13:25:00', 'tag_1': 3, 'tag_2': 102}
-#                 ]
-#         spark_df_test = spark.createDataFrame(data)
-#         spark_df_actual = fill_timeseries_x_interval(spark_df_test, timeseries_column_name = 'timestamp', interval_minutes = 60)
+    def test_fill_timeseries_x_interval_multiple_gaps_to_fill_hour(self):
+        data = [{'timestamp': '2023-02-23 13:23:00', 'tag_1': 1, 'tag_2': 12}
+              , {'timestamp': '2023-02-23 16:23:00', 'tag_1': 30, 'tag_2': 105}
+              , {'timestamp': '2023-02-23 17:23:00', 'tag_1': 6, 'tag_2': 300}
+              , {'timestamp': '2023-02-23 19:23:00', 'tag_1': 3, 'tag_2': 102}
+                ]
+        spark_df_test = spark.createDataFrame(data)
+        spark_df_actual = fill_timeseries_x_interval(spark_df_test, timeseries_column_name = 'timestamp', interval_minutes = 60)
         
-#         display(spark_df_actual)
         
-#         expected_data = data = [{'timestamp': '2023-02-23 13:00:00', 'tag_1': 1, 'tag_2': 12}
-#                               , {'timestamp': '2023-02-23 23:24:00', 'tag_1': None, 'tag_2': None}
-#                               , {'timestamp': '2023-02-23 23:25:00', 'tag_1': 3, 'tag_2': 102}
-#                               , {'timestamp': '2023-02-24 23:23:00', 'tag_1': 3, 'tag_2': 102}
-#                               , {'timestamp': '2023-02-24 23:24:00', 'tag_1': None, 'tag_2': None}
-#                               , {'timestamp': '2023-02-24 23:25:00', 'tag_1': 3, 'tag_2': 102}
-#                                 ]
-#         spark_df_expected = spark.createDataFrame(expected_data)
+        expected_data = data = [{'timestamp': '2023-02-23 13:23:00', 'tag_1': 1, 'tag_2': 12}
+                              , {'timestamp': '2023-02-23 14:23:00', 'tag_1': None, 'tag_2': None}
+                              , {'timestamp': '2023-02-23 15:23:00', 'tag_1': None, 'tag_2': None}
+                              , {'timestamp': '2023-02-23 16:23:00', 'tag_1': 30, 'tag_2': 105}
+                              , {'timestamp': '2023-02-23 17:23:00', 'tag_1': 6, 'tag_2': 300}
+                              , {'timestamp': '2023-02-23 18:23:00', 'tag_1': None, 'tag_2': None}
+                              , {'timestamp': '2023-02-23 19:23:00', 'tag_1': 3, 'tag_2': 102}
+                                ]
+        spark_df_expected = spark.createDataFrame(expected_data)
         
-#         # Select the columns in the same order, and sort both dataframes before comparing them.
-#         spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
-#         spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
 
-#         self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
 
 class RollupAndAggProcessDataXMinTests(unittest.TestCase):
     def test_rollup_and_agg_process_data_x_min_with_multiple_data(self):
