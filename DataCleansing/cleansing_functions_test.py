@@ -445,6 +445,38 @@ class RollupAndAggProcessDataXMinTests(unittest.TestCase):
         spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
 
         self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+        
+class ReplaceOutliersWithNullTests(unittest.TestCase):
+    
+    def setUp(self):
+        self.pandas_df_test = pd.DataFrame({'col1': [123, 23, 13, 4, 5, 6, 7, 8, 9, 10]
+                                          , 'col2': [0.4, 1.5, 2.32, 3.56, 4.0, 5.3, 6.4, 7.34, 8.34, 9.102]
+                                          , 'col3': [-100, 200, 300, 400, -500, 60, 70, 80, 90, 100]
+                                          })
+        
+    def test_replace_outliers_with_null_single_column(self):
+        outliers_info_dict = {'col1': [5, 20]}
+        pandas_df_actual = replace_outliers_with_null(self.pandas_df_test, outliers_info_dict)
+        expected_output = pd.DataFrame({'col1': [None, None, 13, None, 5, 6, 7, 8, 9, 10]
+                                      , 'col2': [0.4, 1.5, 2.32, 3.56, 4.0, 5.3, 6.4, 7.34, 8.34, 9.102]
+                                      , 'col3': [-100, 200, 300, 400, -500, 60, 70, 80, 90, 100]
+                                      })
+        pd.testing.assert_frame_equal(pandas_df_actual, expected_output)
+        
+    def test_replace_outliers_with_null_multiple_columns(self):
+        outliers_info_dict = {'col1': [5, 20], 'col2': [7.3, 10.0], 'col3': [-100, 0]}
+        pandas_df_actual = replace_outliers_with_null(self.pandas_df_test, outliers_info_dict)
+        expected_output = pd.DataFrame({'col1': [None, None, 13, None, 5, 6, 7, 8, 9, 10]
+                                      , 'col2': [None, None, None, None, None, None, None, 7.34, 8.34, 9.102]
+                                      , 'col3': [-100, None, None, None, None, None, None, None, None, None]
+                                      })
+        pd.testing.assert_frame_equal(pandas_df_actual, expected_output)
+        
+    def test_replace_outliers_with_null_no_columns(self):
+        pandas_df_actual = replace_outliers_with_null(self.pandas_df_test)
+        expected_output = self.pandas_df_test
+        pd.testing.assert_frame_equal(pandas_df_actual, expected_output)
+
 
 # COMMAND ----------
 
