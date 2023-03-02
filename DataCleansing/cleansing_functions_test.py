@@ -446,7 +446,7 @@ class RollupAndAggProcessDataXMinTests(unittest.TestCase):
 
         self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
         
-class ReplaceOutliersWithNullTests(unittest.TestCase):
+class ReplaceRangeOutliersWithNullTests(unittest.TestCase):
     
     def setUp(self):
         self.pandas_df_test = pd.DataFrame({'col1': [123, 23, 13, 4, 5, 6, 7, 8, 9, 10]
@@ -454,30 +454,30 @@ class ReplaceOutliersWithNullTests(unittest.TestCase):
                                           , 'col3': [-100, 200, 300, 400, -500, 60, 70, 80, 90, 100]
                                           })
         
-    def test_replace_outliers_with_null_single_column(self):
+    def test_replace_range_outliers_with_null_single_column(self):
         outliers_info_dict = {'col1': [5, 20]}
-        pandas_df_actual = replace_outliers_with_null(self.pandas_df_test, outliers_info_dict)
+        pandas_df_actual = replace_range_outliers_with_null(self.pandas_df_test, outliers_info_dict)
         expected_output = pd.DataFrame({'col1': [None, None, 13, None, 5, 6, 7, 8, 9, 10]
                                       , 'col2': [0.4, 1.5, 2.32, 3.56, 4.0, 5.3, 6.4, 7.34, 8.34, 9.102]
                                       , 'col3': [-100, 200, 300, 400, -500, 60, 70, 80, 90, 100]
                                       })
         pd.testing.assert_frame_equal(pandas_df_actual, expected_output)
         
-    def test_replace_outliers_with_null_multiple_columns(self):
+    def test_replace_range_outliers_with_null_multiple_columns(self):
         outliers_info_dict = {'col1': [5, 20], 'col2': [7.3, 10.0], 'col3': [-100, 0]}
-        pandas_df_actual = replace_outliers_with_null(self.pandas_df_test, outliers_info_dict)
+        pandas_df_actual = replace_range_outliers_with_null(self.pandas_df_test, outliers_info_dict)
         expected_output = pd.DataFrame({'col1': [None, None, 13, None, 5, 6, 7, 8, 9, 10]
                                       , 'col2': [None, None, None, None, None, None, None, 7.34, 8.34, 9.102]
                                       , 'col3': [-100, None, None, None, None, None, None, None, None, None]
                                       })
         pd.testing.assert_frame_equal(pandas_df_actual, expected_output)
         
-    def test_replace_outliers_with_null_no_columns(self):
-        pandas_df_actual = replace_outliers_with_null(self.pandas_df_test)
+    def test_replace_range_outliers_with_null_no_columns(self):
+        pandas_df_actual = replace_range_outliers_with_null(self.pandas_df_test)
         expected_output = self.pandas_df_test
         pd.testing.assert_frame_equal(pandas_df_actual, expected_output)
 
-class TestAddOutlierFlag(unittest.TestCase):
+class AddPercentileOutlierFlagTests(unittest.TestCase):
 
     def setUp(self):
         self.pandas_df_test = pd.DataFrame({
@@ -493,12 +493,42 @@ class TestAddOutlierFlag(unittest.TestCase):
         })
         self.pandas_df_test.set_index('datetime', inplace = True)
 
-    def test_add_outlier_flag_single_column(self):
-        pandas_df_actual = add_outlier_flag(self.pandas_df_test, ['tag_flow_2'], percentile = 0.9)
+    def test_add_percentile_outlier_flag_single_column(self):
+        pandas_df_actual = add_percentile_outlier_flag(self.pandas_df_test, ['tag_flow_2'], percentile = 0.9)
         actual_tag_flow_2_outlier_flags= list(pandas_df_actual['tag_flow_2_is_outlier_flag'])
         expected_tag_flow_2_outlier_flags = ['Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'Y', 'N']
         self.assertTrue('tag_flow_2_is_outlier_flag' in pandas_df_actual)
         self.assertEqual(actual_tag_flow_2_outlier_flags, expected_tag_flow_2_outlier_flags)
+
+class ReplacePercentileOutliersWithNullTests(unittest.TestCase):
+
+    def setUp(self):
+        self.pandas_df_test = pd.DataFrame({
+            'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                       , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                       , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                       , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                       , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                       , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                       , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                       , '2022-06-01 6:21']
+         , 'tag_flow_2': [61, 56, 40, 8, 8, 65, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, 64, 56]
+        })
+
+    def test_replace_percentile_outliers_with_null_single_column(self):
+        pandas_df_actual = replace_percentile_outliers_with_null(self.pandas_df_test, ['tag_flow_2'], percentile = 0.9)
+        pandas_df_expected = pd.DataFrame(
+                                {'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                                            , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                                            , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                                            , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                                            , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                                            , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                                            , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                                            , '2022-06-01 6:21']
+                                 , 'tag_flow_2': [None, 56, 40, 8, 8, None, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, None, 56]
+                                })
+        pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected)
 
 # COMMAND ----------
 
