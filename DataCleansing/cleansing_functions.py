@@ -200,21 +200,21 @@ def rollup_and_agg_process_data_x_min(spark_df: SparkDataFrame, tag_agg_dict: Di
     return spark_df
   
 # FUNCTION WAS RENAMED FROM 'remove_values' AND THE PARAMETERS WERE CHANGED. THIS IS THE SAME AS "clean_process_data_with_outliers" BUT FOR A PANDAS DF????
-def replace_outliers_with_null(pandas_df: pd.DataFrame, outliers_info_dict: Dict[str, List[float]] = {}) -> pd.DataFrame:
+def replace_range_outliers_with_null(pandas_df: pd.DataFrame, outliers_info_dict: Dict[str, List[float]] = {}) -> pd.DataFrame:
     """
     Replaces values outside the specified range with NULLs for specified columns and returns the filtered DataFrame.
     
     Args:
         pandas_df: Input pandas dataframe
-        columns_filter_info_dict: Dictionary containing outlier ranges for each column.
-                                  The keys are column names.
-                                  The values are a list containing minimum and maximum ranges.
+        outliers_info_dict: Dictionary containing outlier ranges for each column.
+                            The keys are column names.
+                            The values are a list containing minimum and maximum ranges.
         
     Returns:
         DataFrame: Pandas DataFrame after replacing values below the lower range and above the upper range with nulls.
         
     Assumptions:
-        The values in outliers_info are [min, max] where min and max are inclusive.
+        The values in outliers_info_dict are [min, max] where min and max are inclusive.
     """
     
     for col_name, (min_val, max_val) in outliers_info_dict.items():
@@ -223,23 +223,44 @@ def replace_outliers_with_null(pandas_df: pd.DataFrame, outliers_info_dict: Dict
     return pandas_df
 
 # FUNCTION WAS RENAMED FROM 'identify_outliers'
-def add_outlier_flag(pandas_df: pd.DataFrame, columns_names: List[str], percentile: float) -> pd.DataFrame:
+def add_percentile_outlier_flag(pandas_df: pd.DataFrame, column_names: List[str], percentile: float) -> pd.DataFrame:
     """
     Add a column to the dataframe identifying values that fall outside of a certain percentile range.
     
     Args:
         pandas_df: The input dataframe.
-        columns_names: A list of column names to flag outliers in.
+        column_names: A list of column names to flag outliers in.
         percentile: The percentile value to use as the threshold for identifying outliers.
     
     Returns:
         DataFrame: A Pandas DataFrame with an additional column '_is_outlier_flag' that indicates if each row is an outlier (Y) or not (N).
     """
 
-    for column in columns_names:
+    for column in column_names:
         col_data = pandas_df[column]
         # Calculate the lower and upper bounds for the specified percentile parameter for the data in the column.
         lower_bound, upper_bound = col_data.quantile([1 - percentile, percentile])
         pandas_df[column + '_is_outlier_flag'] = np.where((col_data > upper_bound) | (col_data < lower_bound), 'Y', 'N')
         
+    return pandas_df
+
+def replace_percentile_outliers_with_null(pandas_df: pd.DataFrame, column_names: List[str], percentile: float) -> pd.DataFrame:
+    """
+    Replaces outlier values in specified columns of a dataframe with null values based on the percentile provided,
+    
+    Args:
+        pandas_df: The input dataframe.
+        column_names: A list of column names to replace outliers in.
+        percentile: The percentile value to use as the threshold for identifying outliers.
+    
+    Returns:
+        DataFrame: A Pandas DataFrame with outlier values in specified columns replaced with null values.
+    """
+
+    for column in column_names:
+        col_data = pandas_df[column]
+        # Calculate the lower and upper bounds for the specified percentile parameter for the data in the column.
+        lower_bound, upper_bound = col_data.quantile([1 - percentile, percentile])
+        pandas_df[column] = col_data.where((col_data <= upper_bound) & (col_data >= lower_bound), None)
+
     return pandas_df
