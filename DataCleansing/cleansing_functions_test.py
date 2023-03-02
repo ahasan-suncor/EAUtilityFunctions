@@ -415,6 +415,115 @@ class FillTimeseriesXIntervalTests(unittest.TestCase):
         spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2']).orderBy('timestamp')
 
         self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+        
+class IMPUTEPROCESSDATA(unittest.TestCase):
+    def test_impute_process_data_with_null_no_column(self):
+        data = [{'timestamp': '2022-02-13 1:00:00', 'tag_1': 115.24, 'tag_2': 89.52, 'tag_3': 45.31}
+                      , {'timestamp': '2022-02-13 1:01:00', 'tag_1': 86.89, 'tag_2': 89.52, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:02:00', 'tag_1': 58.54, 'tag_2': 101.25, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:03:00', 'tag_1': 15.3, 'tag_2': 56.32, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:04:00', 'tag_1': 46.7, 'tag_2': 56.32, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:05:00', 'tag_1': 11.3, 'tag_2': 56.32, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:06:00', 'tag_1': 109.5, 'tag_2': 1.25, 'tag_3': 32.33}
+                       ]
+        spark_df_test = spark.createDataFrame(data)
+
+        tag_dict = [{'tag': 'tag_1', 'imputation_method': 'Linear interpolation', 'imputation_window': 1}
+                      , {'tag': 'tag_2', 'imputation_method': 'forward fill', 'imputation_window': 2}
+                      , {'tag': 'tag_3', 'imputation_method': 'backfill', 'imputation_window': 5} 
+                       ]
+        tag_dict_df = spark.createDataFrame(tag_dict)
+
+        spark_df_actual = impute_process_data(spark_df_test, tag_dict_df)
+
+        expected_data = [{'timestamp': '2022-02-13 1:00:00', 'tag_1': 115.24, 'tag_2': 89.52, 'tag_3': 45.31}
+                      , {'timestamp': '2022-02-13 1:01:00', 'tag_1': 86.89, 'tag_2': 89.52, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:02:00', 'tag_1': 58.54, 'tag_2': 101.25, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:03:00', 'tag_1': 15.3, 'tag_2': 56.32, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:04:00', 'tag_1': 46.7, 'tag_2': 56.32, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:05:00', 'tag_1': 11.3, 'tag_2': 56.32, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:06:00', 'tag_1': 109.5, 'tag_2': 1.25, 'tag_3': 32.33}
+                       ]
+
+        spark_df_expected = spark.createDataFrame(expected_data)
+
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+                
+    def test_impute_process_data_with_null_single_column(self):
+        data = [{'timestamp': '2022-02-13 1:00:00', 'tag_1': 115.24, 'tag_2': 89.52, 'tag_3': 45.31}
+                      , {'timestamp': '2022-02-13 1:01:00', 'tag_1': 86.89, 'tag_2': 89.52, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:02:00', 'tag_1': 58.54, 'tag_2': 101.25, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:03:00', 'tag_1': 15.3, 'tag_2': None, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:04:00', 'tag_1': 46.7, 'tag_2': None, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:05:00', 'tag_1': 11.3, 'tag_2': None, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:06:00', 'tag_1': 109.5, 'tag_2': 1.25, 'tag_3': 32.33}
+                       ]
+        spark_df_test = spark.createDataFrame(data)
+
+        tag_dict = [{'tag': 'tag_1', 'imputation_method': 'Linear interpolation', 'imputation_window': 1}
+                      , {'tag': 'tag_2', 'imputation_method': 'forward fill', 'imputation_window': 2}
+                      , {'tag': 'tag_3', 'imputation_method': 'backfill', 'imputation_window': 5} 
+                       ]
+        tag_dict_df = spark.createDataFrame(tag_dict)
+
+        spark_df_actual = impute_process_data(spark_df_test, tag_dict_df)
+
+        expected_data = [{'timestamp': '2022-02-13 1:00:00', 'tag_1': 115.24, 'tag_2': 89.52, 'tag_3': 45.31}
+                      , {'timestamp': '2022-02-13 1:01:00', 'tag_1': 86.89, 'tag_2': 89.52, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:02:00', 'tag_1': 58.54, 'tag_2': 101.25, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:03:00', 'tag_1': 15.3, 'tag_2': 101.25, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:04:00', 'tag_1': 46.7, 'tag_2': 101.25, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:05:00', 'tag_1': 11.3, 'tag_2': None, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:06:00', 'tag_1': 109.5, 'tag_2': 1.25, 'tag_3': 32.33}
+                       ]
+
+        spark_df_expected = spark.createDataFrame(expected_data)
+
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
+
+    def test_impute_process_data_with_null_multiple_columns(self):
+        data = [{'timestamp': '2022-02-13 1:00:00', 'tag_1': 115.24, 'tag_2': 89.52, 'tag_3': 45.31}
+              , {'timestamp': '2022-02-13 1:01:00', 'tag_1': None, 'tag_2': None, 'tag_3': None}
+              , {'timestamp': '2022-02-13 1:02:00', 'tag_1': 58.54, 'tag_2': None, 'tag_3': 70.12}
+              , {'timestamp': '2022-02-13 1:03:00', 'tag_1': 15.3, 'tag_2': 56.32, 'tag_3': None}
+              , {'timestamp': '2022-02-13 1:04:00', 'tag_1': None, 'tag_2': None, 'tag_3': None}
+              , {'timestamp': '2022-02-13 1:05:00', 'tag_1': None, 'tag_2': 33.21, 'tag_3': None}
+              , {'timestamp': '2022-02-13 1:06:00', 'tag_1': 109.5, 'tag_2': 1.25, 'tag_3': 32.33}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+
+        tag_dict = [{'tag': 'tag_1', 'imputation_method': 'Linear interpolation', 'imputation_window': 1}
+                      , {'tag': 'tag_2', 'imputation_method': 'forward fill', 'imputation_window': 2}
+                      , {'tag': 'tag_3', 'imputation_method': 'backfill', 'imputation_window': 5} 
+                       ]
+        tag_dict_df = spark.createDataFrame(tag_dict)
+
+        spark_df_actual = impute_process_data(spark_df_test, tag_dict_df)
+
+        expected_data = [{'timestamp': '2022-02-13 1:00:00', 'tag_1': 115.24, 'tag_2': 89.52, 'tag_3': 45.31}
+                      , {'timestamp': '2022-02-13 1:01:00', 'tag_1': 86.89, 'tag_2': 89.52, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:02:00', 'tag_1': 58.54, 'tag_2': 89.52, 'tag_3': 70.12}
+                      , {'timestamp': '2022-02-13 1:03:00', 'tag_1': 15.3, 'tag_2': 56.32, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:04:00', 'tag_1': 46.7, 'tag_2': 56.32, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:05:00', 'tag_1': None, 'tag_2': 33.21, 'tag_3': 32.33}
+                      , {'timestamp': '2022-02-13 1:06:00', 'tag_1': 109.5, 'tag_2': 1.25, 'tag_3': 32.33}
+                       ]
+
+        spark_df_expected = spark.createDataFrame(expected_data)
+
+        # Select the columns in the same order, and sort both dataframes before comparing them.
+        spark_df_actual_sorted = spark_df_actual.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+        spark_df_expected_sorted = spark_df_expected.select(['timestamp', 'tag_1', 'tag_2', 'tag_3']).orderBy('timestamp')
+
+        self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
 
 class RollupAndAggProcessDataXMinTests(unittest.TestCase):
     def test_rollup_and_agg_process_data_x_min_with_multiple_data(self):

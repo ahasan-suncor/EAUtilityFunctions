@@ -1,6 +1,6 @@
 # Databricks notebook source
 import pyspark.sql.functions as psf
-from pyspark.sql.functions import col, lower, first, when, unix_timestamp, from_unixtime
+from pyspark.sql.functions import col, lower, first, when, unix_timestamp, from_unixtime, pandas_udf, PandasUDFType
 from pyspark.sql import DataFrame as SparkDataFrame
 from typing import Dict, List
 import pandas as pd
@@ -166,6 +166,63 @@ def fill_timeseries_x_interval(spark_df: SparkDataFrame, timeseries_column_name:
                                             .drop(spark_df[timeseries_column_name])
                   
     return joined_df
+  
+def impute_process_data(spark_df: SparkDataFrame, tag_dict: SparkDataFrame, timeseries_column_name: str = 'timestamp') -> SparkDataFrame:
+    """
+    Imputes the null values in a dataframe based on imputation methods (backfill, forwardfill and linear interpolation) and the imputation window (in number of rows) specified in the tag dictionary for each tag.
+
+    Args:
+        spark_df: The Spark DataFrame to be imputed.
+        timestamp_column: The name of the column containing the timestamp data.
+        tag_dict: The Spark Data Frame with tag, imputation method and imputation window as columns.
+
+    Returns:
+        SparkDataFrame: The Spark DataFrame with null values being imputed.
+    """
+
+    @pandas_udf(spark_df.schema, PandasUDFType.GROUPED_MAP)
+    def impute_missing_interpolate(pdf):
+        pdf = pdf.sort_values(timeseries_column_name).reset_index(drop=True)
+        pdf[tag_name] = pdf[tag_name].interpolate(method='linear', limit=imputation_window, limit_direction='forward')
+        return pdf
+        
+
+    @pandas_udf(spark_df.schema, PandasUDFType.GROUPED_MAP)
+    def impute_missing_ffill(pdf):
+        pdf = pdf.sort_values(timeseries_column_name).reset_index(drop=True)
+        pdf[tag_name] = pdf[tag_name].fillna(method='ffill', limit=imputation_window)
+        return pdf
+
+    @pandas_udf(spark_df.schema, PandasUDFType.GROUPED_MAP)
+    def impute_missing_bfill(pdf):
+        pdf = pdf.sort_values(timeseries_column_name).reset_index(drop=True)
+        pdf[tag_name] = pdf[tag_name].fillna(method='bfill', limit=imputation_window)
+        return pdf
+   
+
+    tags = tag_dict.select(
+        'tag', 'imputation_method', col('imputation_window').cast('int')
+    ).toPandas()
+
+
+    col_list = list(spark_df.columns)
+    spark_df = spark_df.orderBy(timeseries_column_name)
+    for i in range(len(tags)):
+        tag_name = tags.loc[i, 'tag']
+        imputation_method = tags.loc[i, 'imputation_method']
+        imputation_window = tags.loc[i, 'imputation_window']
+
+        if tag_name in col_list:
+            if imputation_method == 'Linear interpolation':
+                spark_df = spark_df.groupBy().apply(impute_missing_interpolate)
+            elif imputation_method == 'backfill':
+                spark_df = spark_df.groupBy().apply(impute_missing_bfill)
+            elif imputation_method == 'forward fill':
+                spark_df = spark_df.groupBy().apply(impute_missing_ffill)
+            else:
+                continue
+                  
+    return spark_df
 
 def rollup_and_agg_process_data_x_min(spark_df: SparkDataFrame, tag_agg_dict: Dict[str, str], interval_minutes: int = 60, timestamp_column_name: str = 'timestamp') -> SparkDataFrame:
     """
