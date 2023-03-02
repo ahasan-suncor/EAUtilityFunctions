@@ -416,7 +416,7 @@ class FillTimeseriesXIntervalTests(unittest.TestCase):
 
         self.assertTrue(is_actual_df_equal_to_expected_df(spark_df_actual_sorted, spark_df_expected_sorted) == True)
         
-class IMPUTEPROCESSDATA(unittest.TestCase):
+class Impute_Process_Data_Tests(unittest.TestCase):
     def test_impute_process_data_with_null_no_column(self):
         data = [{'timestamp': '2022-02-13 1:00:00', 'tag_1': 115.24, 'tag_2': 89.52, 'tag_3': 45.31}
                       , {'timestamp': '2022-02-13 1:01:00', 'tag_1': 86.89, 'tag_2': 89.52, 'tag_3': 70.12}
@@ -585,6 +585,121 @@ class ReplaceRangeOutliersWithNullTests(unittest.TestCase):
         pandas_df_actual = replace_range_outliers_with_null(self.pandas_df_test)
         expected_output = self.pandas_df_test
         pd.testing.assert_frame_equal(pandas_df_actual, expected_output)
+        
+class Fill_Nan_Tests(unittest.TestCase):
+    
+    def setUp(self):
+        self.pandas_df_test = pd.DataFrame({'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                                            , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                                            , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                                            , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                                            , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                                            , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                                            , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                                            , '2022-06-01 6:23']
+                          , 'tag_flow_1': [None, 56, None, 8, 9, None, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, None, 56.0]
+                          , 'tag_flow_2': [None, 43, None, 10, 11, None, None, None, 45, 9, 10, 18, 27, 33, 38, 49, 110, None, None, None, None, 18]
+                                })
+
+        self.pandas_df_test['datetime'] = pd.to_datetime(self.pandas_df_test['datetime'])
+        self.pandas_df_test.set_index('datetime',inplace=True)
+
+        self.columns = ['tag_flow_1', 'tag_flow_2']
+        
+    def test_fill_nan_with_pad_method(self):
+        pandas_df_actual = fill_nan(self.pandas_df_test, self.columns, 'pad', 3)
+
+        pandas_df_expected = pd.DataFrame({'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                                                    , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                                                    , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                                                    , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                                                    , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                                                    , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                                                    , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                                                    , '2022-06-01 6:23']
+                                  , 'tag_flow_1': [None, 56, 56, 8, 9, 9, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, 8, 56.0]
+                                  , 'tag_flow_2': [None, 43, 43, 10, 11, 11, 11, 11, 45, 9, 10, 18, 27, 33, 38, 49, 110, 110, 110, 110, None, 18]
+                                        })
+
+        pandas_df_expected['datetime'] = pd.to_datetime(pandas_df_expected['datetime'])
+        pandas_df_expected.set_index('datetime',inplace=True)
+        pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected)
+        
+    def test_fill_nan_with_ffill_method(self):
+        pandas_df_actual = fill_nan(self.pandas_df_test, self.columns, 'ffill', 3)
+
+        pandas_df_expected = pd.DataFrame({'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                                                    , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                                                    , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                                                    , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                                                    , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                                                    , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                                                    , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                                                    , '2022-06-01 6:23']
+                                  , 'tag_flow_1': [None, 56, 56, 8, 9, 9, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, 8, 56.0]
+                                  , 'tag_flow_2': [None, 43, 43, 10, 11, 11, 11, 11, 45, 9, 10, 18, 27, 33, 38, 49, 110, 110, 110, 110, None, 18]
+                                        })
+
+        pandas_df_expected['datetime'] = pd.to_datetime(pandas_df_expected['datetime'])
+        pandas_df_expected.set_index('datetime',inplace=True)
+        pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected)
+    
+        
+    def test_fill_nan_with_bfill_method(self):
+        pandas_df_actual = fill_nan(self.pandas_df_test, self.columns, 'bfill', 3)
+
+        pandas_df_expected = pd.DataFrame({'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                                                    , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                                                    , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                                                    , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                                                    , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                                                    , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                                                    , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                                                    , '2022-06-01 6:23']
+                                  , 'tag_flow_1': [56, 56, 8, 8, 9, 59, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, 56, 56.0]
+                                  , 'tag_flow_2': [43, 43, 10, 10, 11, 45, 45, 45, 45, 9, 10, 18, 27, 33, 38, 49, 110, None, 18, 18, 18, 18]
+                                        })
+
+        pandas_df_expected['datetime'] = pd.to_datetime(pandas_df_expected['datetime'])
+        pandas_df_expected.set_index('datetime',inplace=True)
+        pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected)
+        
+    def test_fill_nan_with_linear_method(self):
+        pandas_df_actual = fill_nan(self.pandas_df_test, self.columns, 'linear', 3)
+
+        pandas_df_expected = pd.DataFrame({'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                                                    , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                                                    , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                                                    , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                                                    , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                                                    , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                                                    , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                                                    , '2022-06-01 6:23']
+                                  , 'tag_flow_1': [None, 56, 32, 8, 9, 34, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, 32, 56.0]
+                                  , 'tag_flow_2': [None, 43, 26.5, 10, 11, 19.5, 28, 36.5, 45, 9, 10, 18, 27, 33, 38, 49, 110, 91.6, 73.2, 54.8, None, 18]
+                                        })
+        pandas_df_expected['datetime'] = pd.to_datetime(pandas_df_expected['datetime'])
+        pandas_df_expected.set_index('datetime',inplace=True)
+        pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected)
+        
+    def test_fill_nan_with_time_method(self):
+        pandas_df_actual = fill_nan(self.pandas_df_test, self.columns, 'time', 3)
+
+        pandas_df_expected = pd.DataFrame({'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
+                                                    , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
+                                                    , '2022-06-01 6:06', '2022-06-01 6:07', '2022-06-01 6:08'
+                                                    , '2022-06-01 6:09', '2022-06-01 6:10', '2022-06-01 6:11'
+                                                    , '2022-06-01 6:12', '2022-06-01 6:13', '2022-06-01 6:14'
+                                                    , '2022-06-01 6:15', '2022-06-01 6:16', '2022-06-01 6:17'
+                                                    , '2022-06-01 6:18', '2022-06-01 6:19', '2022-06-01 6:20'
+                                                    , '2022-06-01 6:23']
+                                  , 'tag_flow_1': [None, 56, 32, 8, 9, 34, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, 20, 56.0]
+                                  , 'tag_flow_2': [None, 43, 26.5, 10, 11, 19.5, 28, 36.5, 45, 9, 10, 18, 27, 33, 38, 49, 110, 96.857143, 83.714286, 70.571429, None, 18]
+                                        })
+
+        pandas_df_expected['datetime'] = pd.to_datetime(pandas_df_expected['datetime'])
+        pandas_df_expected.set_index('datetime',inplace=True)
+        pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected)
 
 class AddPercentileOutlierFlagTests(unittest.TestCase):
 

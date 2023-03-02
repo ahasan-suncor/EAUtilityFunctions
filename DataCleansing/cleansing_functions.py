@@ -178,6 +178,9 @@ def impute_process_data(spark_df: SparkDataFrame, tag_dict: SparkDataFrame, time
 
     Returns:
         SparkDataFrame: The Spark DataFrame with null values being imputed.
+        
+    Assumptions:
+        imputation_method and imputation_window are specified in tag_dict for each tag.
     """
 
     @pandas_udf(spark_df.schema, PandasUDFType.GROUPED_MAP)
@@ -278,6 +281,26 @@ def replace_range_outliers_with_null(pandas_df: pd.DataFrame, outliers_info_dict
         pandas_df[col_name] = pandas_df[col_name].where((pandas_df[col_name] >= min_val) & (pandas_df[col_name] <= max_val))
     
     return pandas_df
+
+def fill_nan(df:pd.DataFrame, column:List, method:str, limit_max_nulls:int = None):
+    """
+    Imputes the null values in a dataframe for the columns specified in the column list based on the specified method. Limit for the maximum number of null values to be imputed can be specified.
+    
+    Args: 
+    df : Pandas dataframe with datetime as Index
+    column : list of column names
+    method: imputation methods {'bfill', 'pad', 'ffill', 'interpolate', 'time'}
+    limit_max_nulls: maximum number of null samples to be imputed
+    
+    Returns:
+    df : Pandas dataframe with null values being imputed
+    """
+    if limit_max_nulls == None:
+       df[columns] = df[columns].interpolate(method=method)
+    else:
+       df[columns] = df[columns].interpolate(method=method, limit=limit_max_nulls)
+
+    return df
 
 # FUNCTION WAS RENAMED FROM 'identify_outliers'
 def add_percentile_outlier_flag(pandas_df: pd.DataFrame, column_names: List[str], percentile: float) -> pd.DataFrame:
