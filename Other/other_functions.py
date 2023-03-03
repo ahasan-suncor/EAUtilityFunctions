@@ -1,6 +1,7 @@
 # Databricks notebook source
 from pyspark.sql import DataFrame as SparkDataFrame
 from datetime import datetime, time, timedelta
+from pyspark.sql.functions import md5, concat_ws
 
 def load_data_from_path(data_path: str, data_format: str = 'delta', data_options: dict = {}) -> SparkDataFrame:
     """
@@ -72,3 +73,21 @@ def get_shiftid_from_timestamp(timestamp: datetime, day_shift_start_time: time):
     shiftid = shift_datetime.strftime('%y%m%d') + shift_identifier
 
     return int(shiftid)
+
+def add_business_key_hash_value_to_spark_df(spark_df: SparkDataFrame, business_key_cols: list) -> SparkDataFrame:
+    """
+    This function adds a new column to a Spark DataFrame that contains a hash value of the business key columns.
+    The resulting hash is used to uniquely identify the record based on the business key.
+
+    Args:
+        spark_df: The Spark DataFrame to add the hash column to.
+        business_key_cols: A list of column names to use as the business key columns.
+
+    Returns:
+        SparkDataFrame: The Spark DataFrame with the new hash column added.
+    """
+
+    # We drop the duplicates because the key will be a unique identfier for each record.
+    values_seperator = ':'
+    return spark_df.dropDuplicates(business_key_cols) \
+                   .withColumn('BusinessKeyColHash', md5(concat_ws(values_seperator, *business_key_cols)))

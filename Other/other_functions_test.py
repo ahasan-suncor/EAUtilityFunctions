@@ -1,5 +1,6 @@
 # Databricks notebook source
 import unittest
+from pyspark.sql.functions import md5, col, StringType
 
 class TestLoadDataFromPath(unittest.TestCase):
     
@@ -89,3 +90,29 @@ class TestGetShiftidFromTimestamp(unittest.TestCase):
         shiftid = get_shiftid_from_timestamp(timestamp, day_shift_start_time)
         self.assertEqual(shiftid, expected_shiftid)
 
+class TestAddBusinessKeyHashValueToSparkDF(unittest.TestCase):
+    
+    def setUp(self):
+        data = [{'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+              , {'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+              , {'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
+               ]
+        self.spark_df_test = self.spark_df_test = spark.createDataFrame(data)
+        self.business_key_cols = ['first_name', 'last_name']
+
+    def test_add_business_key_hash_value_to_spark_df_drop_duplicates(self):
+        df_with_dups = self.spark_df_test.union(self.spark_df_test)
+        spark_df_with_hash = add_business_key_hash_value_to_spark_df(df_with_dups, self.business_key_cols)
+        self.assertEqual(spark_df_with_hash.count(), self.spark_df_test.count())
+        
+    def test_add_business_key_hash_value_to_spark_df_business_key_cols(self):
+        spark_df_with_hash = add_business_key_hash_value_to_spark_df(self.spark_df_test, self.business_key_cols)
+        expected_columns = self.business_key_cols + ['age', 'BusinessKeyColHash']
+        self.assertEqual(set(spark_df_with_hash.columns), set(expected_columns))
+        
+    def test_add_business_key_hash_value_to_spark_df_hash_value(self):
+        spark_df_with_hash = add_business_key_hash_value_to_spark_df(self.spark_df_test, self.business_key_cols)
+        actual_hash_vals = spark_df_with_hash.select('BusinessKeyColHash').rdd.flatMap(lambda x: x).collect()
+        # https://www.md5hashgenerator.com/
+        expected_hash_vals = ['64d59c83967ff70ad33fb6142bd8c902', 'ba4985621d3c63437e780bdb05a8bd60', '325c855071342ecfcdd3478a46d90fce']
+        self.assertEqual(set(actual_hash_vals), set(expected_hash_vals))
