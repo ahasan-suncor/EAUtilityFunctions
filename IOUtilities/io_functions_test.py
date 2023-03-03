@@ -1,7 +1,7 @@
 # Databricks notebook source
 import unittest
 
-class TestLoadDataFromPath(unittest.TestCase):
+class LoadDataFromPathTests(unittest.TestCase):
     
     def setUp(self):
         self.data_path = '/tmp/TestLoadDataFromPath/TestData'
@@ -14,7 +14,7 @@ class TestLoadDataFromPath(unittest.TestCase):
 
     @classmethod
     def tearDown(cls):
-        dbutils.fs.rm("/tmp/TestLoadDataFromPath/TestData", True)
+        dbutils.fs.rm('/tmp/TestLoadDataFromPath/TestData', True)
 
     def test_load_data_from_path(self):
         spark_df_actual = load_data_from_path(self.data_path, data_format = 'csv')
@@ -31,7 +31,7 @@ class TestLoadDataFromPath(unittest.TestCase):
         spark_df_actual = load_data_from_path(None)
         self.assertEqual(spark_df_actual, None)
 
-class TestAddColumnPrefix(unittest.TestCase):
+class AddColumnPrefixTests(unittest.TestCase):
     
     def setUp(self):
         self.spark_df_test = spark.createDataFrame([('Jane', 'Doe', 10), ('Play', 'Doe', 20), ('Taekwon', 'Doe', 35)]
@@ -45,7 +45,7 @@ class TestAddColumnPrefix(unittest.TestCase):
         prefixed_df = add_column_prefix(self.spark_df_test, '')
         self.assertEqual(prefixed_df.columns, ['first_name', 'last_name', 'age'])
 
-class TestAddAuditColsToSparkDF(unittest.TestCase):
+class AddAuditColsToSparkDFTests(unittest.TestCase):
     
     def setUp(self):
         data = [{'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
@@ -67,7 +67,7 @@ class TestAddAuditColsToSparkDF(unittest.TestCase):
         expected_cols = ['age', 'first_name', 'last_name', 'CreatedBy', 'CreatedDateTime_UTC', 'CreatedBy', 'CreatedDateTime_UTC']
         self.assertEqual(actual_cols, expected_cols)           
 
-class TestAddBusinessKeyHashValueToSparkDF(unittest.TestCase):
+class AddBusinessKeyHashValueToSparkDFTests(unittest.TestCase):
     
     def setUp(self):
         data = [{'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
@@ -93,3 +93,41 @@ class TestAddBusinessKeyHashValueToSparkDF(unittest.TestCase):
         # https://www.md5hashgenerator.com/
         expected_hash_vals = ['64d59c83967ff70ad33fb6142bd8c902', 'ba4985621d3c63437e780bdb05a8bd60', '325c855071342ecfcdd3478a46d90fce']
         self.assertEqual(set(actual_hash_vals), set(expected_hash_vals))
+
+class SaveSparkDFToPathTests(unittest.TestCase):
+
+    def setUp(self):
+        self.save_path = '/tmp/SaveDFToPath/TestData'
+        data = [{'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+              , {'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+              , {'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
+               ]
+        self.spark_df_test = spark_df_test = spark.createDataFrame(data)
+
+    @classmethod
+    def tearDown(cls):
+        dbutils.fs.rm('/tmp/SaveDFToPath/TestData', True)
+
+    def test_save_spark_df_to_path_as_new_delta_table(self):
+        save_spark_df_to_path(self.spark_df_test, save_path = self.save_path)
+        spark_df_loaded = spark.read.format('delta').load(self.save_path)
+        self.assertTrue(spark_df_loaded.count() == 3)
+        self.assertTrue(len(spark_df_loaded.columns) == 3)
+
+    def test_save_spark_df_to_path_with_merge(self):
+        # Save as new delta table first. **** Add hash column. **** 
+        spark_df_with_hash_val = add_business_key_hash_value_to_spark_df(self.spark_df_test, ['first_name', 'last_name'])
+        save_spark_df_to_path(spark_df_with_hash_val, save_path = self.save_path)
+        
+        # New data is merged with the data that already exists.
+        new_data = [{'first_name': 'Jane', 'last_name': 'Doe', 'age': 100}
+                  , {'first_name': 'Play', 'last_name': 'Doe', 'age': 200}
+                  , {'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 350}
+                   ]
+        spark_df_new = spark.createDataFrame(new_data)
+        spark_df_new_with_hash_val = add_business_key_hash_value_to_spark_df(spark_df_new, ['first_name', 'last_name'])
+        save_spark_df_to_path(spark_df_new_with_hash_val, save_path = self.save_path)
+        
+        spark_df_loaded = spark.read.format('delta').load(self.save_path)
+        self.assertTrue(spark_df_loaded.count() == 3)
+        self.assertTrue(len(spark_df_loaded.columns) == 4)

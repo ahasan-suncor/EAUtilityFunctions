@@ -1,6 +1,7 @@
 # Databricks notebook source
 from pyspark.sql import DataFrame as SparkDataFrame
 from pyspark.sql.functions import md5, concat_ws
+from delta.tables import DeltaTable
 
 def load_data_from_path(data_path: str, data_format: str = 'delta', data_options: dict = {}) -> SparkDataFrame:
     """
@@ -75,3 +76,36 @@ def add_business_key_hash_value_to_spark_df(spark_df: SparkDataFrame, business_k
     values_seperator = ':'
     return spark_df.dropDuplicates(business_key_cols) \
                    .withColumn('BusinessKeyColHash', md5(concat_ws(values_seperator, *business_key_cols)))
+
+def save_spark_df_to_path(spark_df: SparkDataFrame, save_path: str):
+    """
+    This function saves a dataframe to the specified path using PySpark.
+
+    Args:
+        spark_df: The Spark DataFrame to add save.
+        save_path: A string specifying the path to save the data.
+
+    Assumptions:
+        Data is saved in a delta format.
+        The save mode is either as a new table or a merge.
+        'BusinessKeyColHash' column exists ('add_business_key_hash_value_to_spark_df' was run)
+    """
+
+    is_delta_table_in_save_path = DeltaTable.isDeltaTable(spark, save_path)
+    if is_delta_table_in_save_path:
+        __save_spark_df_with_merge(spark_df, save_path)
+    else:
+        __save_spark_df_as_new_delta_table(spark_df, save_path)
+        
+def __save_spark_df_with_merge(spark_df: SparkDataFrame, save_path: str):
+    DeltaTable.forPath(spark, save_path).alias('persisted') \
+              .merge(spark_df.alias('incoming'), 'persisted.BusinessKeyColHash = incoming.BusinessKeyColHash') \
+              .whenMatchedUpdateAll() \
+              .whenNotMatchedInsertAll() \
+              .execute()
+    
+def __save_spark_df_as_new_delta_table(spark_df: SparkDataFrame, save_path: str):
+    spark_df.write \
+            .mode('overwrite') \
+            .format('delta') \
+            .save(save_path)
