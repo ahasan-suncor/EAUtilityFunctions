@@ -61,3 +61,25 @@ class PivotPrecipitationDataTests(unittest.TestCase):
 #         pandas_df_actual_output = pivot_precipitation_data(pandas_df_empty)
 #         display(pandas_df_actual_output)
 #         self.assertTrue(pandas_df_actual_output.empty)
+
+class MergeDFsTests(unittest.TestCase):
+
+    def setUp(self):
+        self.df_ref = pd.DataFrame({'DateTimeUTC': ['2021-01-01 00:00:00', '2021-01-01 00:15:00'
+                                                  , '2021-01-01 00:30:00', '2021-01-01 00:45:00']
+                                  , 'col2': [1, 2, 3, 4]})
+        self.data = pd.DataFrame({'DateTimeUTC': ['2021-01-01 00:07:30', '2021-01-01 00:30:00'
+                                                , '2021-01-01 00:37:30', '2021-01-01 01:00:00']
+                                , 'col3': [10, 20, 30, 40]})
+
+        self.df_ref['DateTimeUTC'] = pd.to_datetime(self.df_ref['DateTimeUTC'])
+        self.data['DateTimeUTC'] = pd.to_datetime(self.data['DateTimeUTC'])                                
+        
+        self.expected_output = pd.DataFrame({'DateTimeUTC': ['2021-01-01 00:00:00', '2021-01-01 00:15:00'
+                                           , '2021-01-01 00:30:00', '2021-01-01 00:45:00']
+                                           , 'col2': [1, 2, 3, 4]
+                                           , 'col3': [10, None, 20, None]})
+
+    def test_merge_dfs(self):
+        result = merge_dfs(self.df_ref, self.data)
+        pd.testing.assert_frame_equal(result, self.expected_output)

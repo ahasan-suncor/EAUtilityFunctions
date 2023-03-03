@@ -59,3 +59,31 @@ def pivot_precipitation_data(pandas_df: pd.DataFrame, resample_frequency = 'M'
                                      , fill_value = None)
 
     return pandas_df_pivoted
+
+def merge_dfs(pandas_df_reference: pd.DataFrame, pandas_df_to_merge: pd.DataFrame, merge_column_name: str = 'DateTimeUTC') -> pd.DataFrame:
+    """
+    Function to merge two dataframes with unequal time sampling on the 'merge_column_name'.
+    Merge 'pandas_df_to_merge' with 'pandas_df_reference' so that the resulting dataframe has the same time sampling as 'pandas_df_reference'.
+        
+    Args:
+        pandas_df_reference: Input dataframe to merge on.
+        pandas_df_to_merge: Dataframe to merge with.
+        merge_column_name: Column name to merge on.
+        
+    Returns:
+        DataFrame: Merged dataframe.
+    
+    Assumptions:
+        Dates are not sorted.
+        Both dataframes have the same merge_column_name.
+    """
+
+    pandas_df_reference_sorted = pandas_df_reference.sort_values(merge_column_name)
+    pandas_df_to_merge_sorted = pandas_df_to_merge.sort_values(merge_column_name)
+    
+    merged = pd.merge_asof(left = pandas_df_reference_sorted
+                         , right = pandas_df_to_merge_sorted
+                         , on = merge_column_name
+                         , direction = 'nearest')
+    
+    return merged
