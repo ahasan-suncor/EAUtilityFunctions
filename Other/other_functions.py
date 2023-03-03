@@ -74,6 +74,24 @@ def get_shiftid_from_timestamp(timestamp: datetime, day_shift_start_time: time):
 
     return int(shiftid)
 
+def add_audit_cols_to_spark_df(spark_df: SparkDataFrame) -> SparkDataFrame:
+    """
+    This function adds audit columns to a Spark DataFrame regarding row creation.
+
+    Args:
+        spark_df: The Spark DataFrame to add the hash column to.
+
+    Returns:
+        SparkDataFrame: The Spark DataFrame with audit columns added
+    """
+
+    sdf_audit_cols = spark.sql("""
+                               SELECT CURRENT_USER AS CreatedBy
+                                    , CURRENT_TIMESTAMP AS CreatedDateTime_UTC
+                               """)
+
+    return spark_df.crossJoin(sdf_audit_cols)
+
 def add_business_key_hash_value_to_spark_df(spark_df: SparkDataFrame, business_key_cols: list) -> SparkDataFrame:
     """
     This function adds a new column to a Spark DataFrame that contains a hash value of the business key columns.

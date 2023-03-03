@@ -90,6 +90,28 @@ class TestGetShiftidFromTimestamp(unittest.TestCase):
         shiftid = get_shiftid_from_timestamp(timestamp, day_shift_start_time)
         self.assertEqual(shiftid, expected_shiftid)
 
+class TestAddAuditColsToSparkDF(unittest.TestCase):
+    
+    def setUp(self):
+        data = [{'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+              , {'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+              , {'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
+               ]
+        self.spark_df_test = self.spark_df_test = spark.createDataFrame(data)
+
+    def test_add_audit_cols_to_spark_df(self):
+        spark_df_actual = add_audit_cols_to_spark_df(self.spark_df_test)
+        actual_cols = spark_df_actual.columns
+        expected_cols = ['age', 'first_name', 'last_name', 'CreatedBy', 'CreatedDateTime_UTC']
+        self.assertEqual(actual_cols, expected_cols)
+
+    def test_add_audit_cols_to_spark_df_multiple(self):
+        spark_df_with_audit_cols = add_audit_cols_to_spark_df(self.spark_df_test)
+        spark_df_actual = add_audit_cols_to_spark_df(spark_df_with_audit_cols)
+        actual_cols = spark_df_actual.columns
+        expected_cols = ['age', 'first_name', 'last_name', 'CreatedBy', 'CreatedDateTime_UTC', 'CreatedBy', 'CreatedDateTime_UTC']
+        self.assertEqual(actual_cols, expected_cols)           
+
 class TestAddBusinessKeyHashValueToSparkDF(unittest.TestCase):
     
     def setUp(self):
