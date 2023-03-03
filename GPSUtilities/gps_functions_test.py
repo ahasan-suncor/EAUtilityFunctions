@@ -26,3 +26,16 @@ class ConvertSteepbankXYToLonLatTests(unittest.TestCase):
 
         self.assertAlmostEqual(xy_converted_lon_lat['longitude'], expected_longitude, delta = 0.0001)
         self.assertAlmostEqual(xy_converted_lon_lat['latitude'], expected_latitude, delta = 0.0001)
+
+class ConvertForthillsXYToLonLatTests(unittest.TestCase):
+
+    def test_convert_forthills_xy_to_lon_lat(self):
+        x = 465807
+        y  = 6359454
+        xy_converted_lon_lat = convert_forthills_xy_to_lon_lat(x, y)
+
+        expected_longitude = -111.568650963607
+        expected_latitude = 57.3766283928482
+
+        self.assertAlmostEqual(xy_converted_lon_lat['longitude'], expected_longitude, delta = 0.0001)
+        self.assertAlmostEqual(xy_converted_lon_lat['latitude'], expected_latitude, delta = 0.0001)      
