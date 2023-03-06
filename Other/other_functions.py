@@ -1,6 +1,7 @@
 # Databricks notebook source
 from pyspark.sql import DataFrame as SparkDataFrame
-from datetime import datetime, time, timedelta
+from datetime import datetime, date, time, timedelta
+from typing import List
 
 def get_shiftid_from_timestamp(timestamp: datetime, day_shift_start_time: time):
     """
@@ -34,3 +35,17 @@ def get_shiftid_from_timestamp(timestamp: datetime, day_shift_start_time: time):
     shiftid = shift_datetime.strftime('%y%m%d') + shift_identifier
 
     return int(shiftid)
+
+def get_date_range(start_date: date, end_date: date) -> List[date]:
+    """
+    Returns a list of dates between the start and end date (inclusive).
+
+    Args:
+        start_date: Start date in YYYY-MM-DD format.
+        end_date: End date in YYYY-MM-DD format.
+
+    Returns:
+        list: List of dates between start and end in YYYY-MM-DD format.
+    """
+
+    return [start_date + timedelta(n) for n in range(int((end_date - start_date).days) + 1)]
