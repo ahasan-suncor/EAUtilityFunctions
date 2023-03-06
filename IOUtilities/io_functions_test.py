@@ -9,7 +9,7 @@ class LoadDataFromPathTests(unittest.TestCase):
               , {'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
               , {'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
                ]
-        self.spark_df_test = spark_df_test = spark.createDataFrame(data)
+        self.spark_df_test = spark.createDataFrame(data)
         self.spark_df_test.write.format('csv').option('header', True).mode('overwrite').save(self.data_path)
 
     @classmethod

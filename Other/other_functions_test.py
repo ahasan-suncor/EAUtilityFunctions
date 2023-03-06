@@ -67,3 +67,35 @@ class GetDateRangeTests(unittest.TestCase):
         actual = get_date_range(start_date, end_date)
         expected = []
         self.assertEqual(actual, expected)
+
+class GetNRowsByColumnTests(unittest.TestCase):
+
+    def setUp(self):
+        data = [{'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+              , {'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+              , {'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
+               ]
+        self.spark_df_test = spark.createDataFrame(data)
+
+    def test_get_n_rows_by_column_1_row_desc(self):
+        actual_result = get_n_rows_by_column(self.spark_df_test, 'age', 1, sort_ascending = False).collect()
+        expected_data = [{'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}]
+        expected_result = spark.createDataFrame(expected_data).collect()
+        self.assertEqual(actual_result, expected_result)
+
+    def test_get_n_rows_by_column_2_rows_asc(self):
+        actual_result = get_n_rows_by_column(self.spark_df_test, 'age', 2, sort_ascending = True).collect()
+        expected_data = [{'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+                       , {'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+                        ]
+        expected_result = spark.createDataFrame(expected_data).collect()
+        self.assertEqual(actual_result, expected_result)
+
+    def test_get_n_rows_by_column_all_rows_desc(self):
+        actual_result = get_n_rows_by_column(self.spark_df_test, 'age', 20, sort_ascending = False).collect()
+        expected_data = [{'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
+                       , {'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+                       , {'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+                        ]
+        expected_result = spark.createDataFrame(expected_data).collect()
+        self.assertEqual(actual_result, expected_result)

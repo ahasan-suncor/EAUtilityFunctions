@@ -1,5 +1,6 @@
 # Databricks notebook source
 from pyspark.sql import DataFrame as SparkDataFrame
+from pyspark.sql.functions import desc, asc
 from datetime import datetime, date, time, timedelta
 from typing import List
 
@@ -49,3 +50,24 @@ def get_date_range(start_date: date, end_date: date) -> List[date]:
     """
 
     return [start_date + timedelta(n) for n in range(int((end_date - start_date).days) + 1)]
+
+def get_n_rows_by_column(spark_df: SparkDataFrame, column_name_to_sort_by: str, num_of_rows: int, sort_ascending: bool = False) -> SparkDataFrame:
+    """
+    Returns the top/bottom N rows based on a specified column in the DataFrame.
+
+    Args:
+        spark_df: A Spark DataFrame.
+        column_name_to_sort_by: The column to sort by.
+        num_of_rows: The number of rows to return.
+        sort_ascending: Whether to sort in ascending order or not.
+
+    Returns:
+        A Spark DataFrame containing the top/bottom N rows.
+    """
+
+    if sort_ascending:
+        spark_df_sorted = spark_df.orderBy(asc(column_name_to_sort_by))
+    else:
+        spark_df_sorted = spark_df.orderBy(desc(column_name_to_sort_by))
+
+    return spark_df_sorted.limit(num_of_rows)

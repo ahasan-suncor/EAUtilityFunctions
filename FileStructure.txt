@@ -1,8 +1,0 @@
-├── DataCleansing - Function Category
-│   ├── cleansing_functions.py - Define functions
-│   ├── cleansing_functions_tests.py - Create tests for the different functions
-│   ├── main.py - Call functions and tests
-├── Sample - Function Category
-│   ├── sample_functions.py - Define functions
-│   ├── sample_functions_tests.py - Create tests for the different functions
-│   ├── main.py - Call functions and tests
