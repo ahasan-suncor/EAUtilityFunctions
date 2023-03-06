@@ -18,7 +18,9 @@ Each folder is catgorized, and follows a similar structure below.
 ├── GPSUtilities/ - Functions for working with GPS data
 ├── IOUtilities/ - Functions related to input/output
 ├── Other/ - Some of these might be able to move to other categories
-└── RFunctions/
+├── RFunctions/
+│   ├──DataCleansing/
+└── TestData/ - Data used to test some of the functions
 ```
 
 ## Usage
@@ -26,5 +28,9 @@ These functions were created in Jupyter notebooks using Azure Databricks. To use
 
 ```git clone https://github.com/ahasan-suncor/EAUtilityFunctions.git```
 
+Every function is documented (ex. docstring) that shows the inputs and outputs. To see how the function is called, refer to its tests.
+
 ## Tests
-These functions were tested using the ```unittest``` testing framework. Each function has its own set of tests. The tests are organized into classes for each function and separate methods for each test.
+The Python functions were tested using the ```unittest``` testing framework. Each function has its own set of tests. The tests are organized into classes for each function and separate methods for each test.
+
+The R functions were tested using the ```testthat``` library.
