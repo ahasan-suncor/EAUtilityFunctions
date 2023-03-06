@@ -44,3 +44,26 @@ class TestGetShiftidFromTimestamp(unittest.TestCase):
         expected_shiftid = 230303002
         shiftid = get_shiftid_from_timestamp(timestamp, day_shift_start_time)
         self.assertEqual(shiftid, expected_shiftid)
+
+class GetDateRangeTests(unittest.TestCase):
+    
+    def test_get_date_range_multiple_dates(self):
+        start_date = date(2023, 1, 1)
+        end_date = date(2023, 1, 3)
+        actual = get_date_range(start_date, end_date)
+        expected = [date(2023, 1, 1), date(2023, 1, 2), date(2023, 1, 3)]
+        self.assertEqual(actual, expected)
+
+    def test_get_date_range_one_date(self):
+        start_date = date(2023, 1, 1)
+        end_date = date(2023, 1, 1)
+        actual = get_date_range(start_date, end_date)
+        expected = [date(2023, 1, 1)]
+        self.assertEqual(actual, expected)
+
+    def test_get_date_range_wrong_order(self):
+        start_date = date(2023, 1, 3)
+        end_date = date(2023, 1, 1)
+        actual = get_date_range(start_date, end_date)
+        expected = []
+        self.assertEqual(actual, expected)
