@@ -100,3 +100,17 @@ def add_rolling_window_aggregation_column(spark_df, config: dict):
     spark_df_with_rolling_agg = spark_df.withColumn(f'{aggregate_column_name}_rolling_{aggregate_function_name}', aggregate_function(aggregate_column_name).over(rolling_window))
 
     return spark_df_with_rolling_agg
+
+def filter_spark_dataframe(spark_df: SparkDataFrame, condition: str) -> SparkDataFrame:
+    """
+    Filter the Spark DataFrame based on the given condition.
+
+    Args:
+        spark_df: The Spark DataFrame to filter.
+        condition: The SQL condition to use for filtering.
+
+    Returns:
+        The filtered Spark DataFrame.
+    """
+
+    return spark_df.filter(condition)

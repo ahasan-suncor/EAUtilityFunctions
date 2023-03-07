@@ -148,3 +148,41 @@ class AddRollingWindowAggregationColumnTests(unittest.TestCase):
         spark_df_expected = spark_df_expected.withColumn('timestamp', spark_df_expected.timestamp.cast('timestamp'))                                                  
 
         self.assertEqual(spark_df_actual.collect(), spark_df_expected.collect())
+
+class FilterSparkDataFrameTests(unittest.TestCase):
+
+    def test_filter_spark_dataframe_single_condition(self):
+        data = [{'Id': 1, 'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+              , {'Id': 2, 'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+              , {'Id': 3, 'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        
+        spark_df_actual = filter_spark_dataframe(spark_df_test, "first_name = 'Taekwon'")
+
+        self.assertEqual(spark_df_actual.count(), 1)
+        self.assertEqual(spark_df_actual.first().Id, 3)
+
+    def test_filter_spark_dataframe_multiple_conditions(self):
+        data = [{'Id': 1, 'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+              , {'Id': 2, 'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+              , {'Id': 3, 'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        
+        spark_df_actual = filter_spark_dataframe(spark_df_test, "first_name != 'Taekwon' AND age >= 10")
+        actual_ids = [row.Id for row in spark_df_actual.select('Id').collect()]
+
+        self.assertEqual(actual_ids, [1, 2])
+
+    def test_filter_spark_dataframe_no_rows_returned(self):
+        data = [{'Id': 1, 'first_name': 'Jane', 'last_name': 'Doe', 'age': 10}
+              , {'Id': 2, 'first_name': 'Play', 'last_name': 'Doe', 'age': 20}
+              , {'Id': 3, 'first_name': 'Taekwon', 'last_name': 'Doe', 'age': 35}
+               ]
+        spark_df_test = spark.createDataFrame(data)
+        
+        spark_df_actual = filter_spark_dataframe(spark_df_test, "first_name = 'BLAH'")
+        actual_ids = [row.Id for row in spark_df_actual.select('Id').collect()]
+
+        self.assertEqual(actual_ids, [])
