@@ -1,6 +1,7 @@
 # Databricks notebook source
 from pyspark.sql import DataFrame as SparkDataFrame
-from pyspark.sql.functions import desc, asc
+from pyspark.sql.functions import desc, asc, avg, round
+from pyspark.sql.window import Window
 from datetime import datetime, date, time, timedelta
 from typing import List
 
@@ -71,3 +72,31 @@ def get_n_rows_by_column(spark_df: SparkDataFrame, column_name_to_sort_by: str, 
         spark_df_sorted = spark_df.orderBy(desc(column_name_to_sort_by))
 
     return spark_df_sorted.limit(num_of_rows)
+
+def add_rolling_window_aggregation_column(spark_df, config: dict):
+    """
+    Performs a moving/rolling window aggregation on a specific column in a Spark dataframe.
+
+    Args:
+        spark_df: The Spark dataframe to perform the rolling window aggregation on.
+        config: A dictionary containing the configuration for the rolling window aggregation.
+                Keys are: aggregate_column_name: The column to perform the aggregation on.
+                          order_by_column_name: Name of the column to order the time window by. Defaults to 'timestamp'.
+                          aggregate_function_name: Aggregation function to apply. Defaults to 'avg'. Other options are: 'sum'
+
+    Returns:
+        A new Spark dataframe with the rolling window aggregation values added as a new column.
+    """
+
+    aggregate_column_name = config['aggregate_column_name']
+    order_by_column_name = config.get('order_by_column_name', 'timestamp')
+    aggregate_function_name = config.get('aggregate_function_name', 'avg')
+    aggregate_function_map = {'avg': avg, 'sum': sum}
+    aggregate_function = aggregate_function_map.get(aggregate_function_name)
+
+    # Include all rows in the dataframe partition when performing the rolling aggregation.
+    rolling_window = Window.orderBy(order_by_column_name).rowsBetween(Window.unboundedPreceding, Window.currentRow)
+
+    spark_df_with_rolling_agg = spark_df.withColumn(f'{aggregate_column_name}_rolling_{aggregate_function_name}', aggregate_function(aggregate_column_name).over(rolling_window))
+
+    return spark_df_with_rolling_agg
