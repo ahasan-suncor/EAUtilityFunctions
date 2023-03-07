@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import plotly.figure_factory as ff
 import numpy as np
 import plotly.graph_objects as go
+import matplotlib.colors as clr
+import matplotlib 
 
 def two_var_scatterplot(pandas_df: pd.DataFrame, 
                         x_col_name: str, 
@@ -44,7 +46,7 @@ def two_var_scatterplot(pandas_df: pd.DataFrame,
 
     # default to Suncor colors if none passed
     if not colorscale:
-        colorscale = [(0, '#FFC429'), (0.5, "#F58220"), (1, "#EF4135")]
+        colorscale = ['#FFC429','#EF4135']
 
     fig = px.scatter(pandas_df, 
                      x=x_col_name,
@@ -54,7 +56,7 @@ def two_var_scatterplot(pandas_df: pd.DataFrame,
                      title=title,
                      width=width,
                      height=height)
-    
+        
     return fig
 
 def n_var_histogram(pandas_df: pd.DataFrame, 
@@ -82,6 +84,12 @@ def n_var_histogram(pandas_df: pd.DataFrame,
         Assumes the data passed is the subset you want to plot (i.e. pandas_df.iloc[0:100], etc.)
         If passing a custom colorscale it must take the form ['red', 'green', 'blue'] as named color or hex code
     """
+
+    if not colorscale:
+        # suncor colormap
+        cmap = clr.LinearSegmentedColormap.from_list('suncor_custom', ['#FFC429','#EF4135'], N=256)
+        colorscale = [matplotlib.colors.to_hex(list(cmap(i))) for i in np.linspace(0, 1, len(col_names))]
+
     # remove any NaN in each column or plot will fail
     data = [pandas_df[name].dropna() for name in col_names]
 
