@@ -4,7 +4,7 @@ from typing import List
 
 def pd_resamp_mean(pandas_df: pd.DataFrame, column_names: List[str], aggregation_frequency: str) -> pd.DataFrame:
     """
-    Aggregates pandas dataframe to the specified aggregation level and returns the aggregated mean value for the given frequency in a panas dataframe.
+    Aggregates pandas dataframe to the specified aggregation level and returns the aggregated mean value for the given frequency in a pandas dataframe.
     aggregation_freq can be 'H' for hourly,'D' for daily or 'M' for monthly or 'Y' for yearly.
     
     Args: 
@@ -25,7 +25,7 @@ def pd_resamp_mean(pandas_df: pd.DataFrame, column_names: List[str], aggregation
 
 def pd_resamp_median(pandas_df: pd.DataFrame, column_names: List[str], aggregation_frequency: str) -> pd.DataFrame:
     """
-    Aggregates pandas dataframe to the specified aggregation level and returns the aggregated median value for the given frequency in a panas dataframe.
+    Aggregates pandas dataframe to the specified aggregation level and returns the aggregated median value for the given frequency in a pandas dataframe.
     aggregation_freq can be 'H' for hourly,'D' for daily or 'M' for monthly or 'Y' for yearly.
     
     Args: 
@@ -45,7 +45,7 @@ def pd_resamp_median(pandas_df: pd.DataFrame, column_names: List[str], aggregati
 
 def pd_resamp_last(pandas_df: pd.DataFrame, column_names: List[str], aggregation_frequency: str) -> pd.DataFrame:
     """
-    Aggregates pandas dataframe to the specified aggregation level and returns the aggregated last value for the given frequency in a panas dataframe.
+    Aggregates pandas dataframe to the specified aggregation level and returns the aggregated last value for the given frequency in a pandas dataframe.
     aggregation_freq can be 'H' for hourly,'D' for daily or 'M' for monthly or 'Y' for yearly.
     
     Args: 
@@ -62,3 +62,28 @@ def pd_resamp_last(pandas_df: pd.DataFrame, column_names: List[str], aggregation
     pandas_df_resampled_with_last  = pandas_df[column_names].resample(aggregation_frequency).last()
     
     return pandas_df_resampled_with_last
+  
+def pd_resamp_mean_by_status(pandas_df: pd.DataFrame, coldict: dict, aggregation_frequency: str) -> pd.DataFrame:
+    """
+    Aggregates pandas dataframe to the specified aggregation level and returns the aggregated mean value for the given frequency using their respective status column values as a pandas dataframe.
+    aggregation_freq can be 'H' for hourly,'D' for daily or 'M' for monthly or 'Y' for yearly.
+    The aggregation will return mean value for the given frequency, ignoring times when status NULL and including times when status>=0.
+    
+    Args: 
+        pandas_df : A Pandas DataFrame to be aggregated
+        coldict : Dictionary containing column names to aggregate and corresponding status column names 
+        aggregation_frequency : String indicating the type of aggregation {'H', 'D', 'M', Y'}, it can be 'H' for hourly,'D' for daily or 'M' for monthly or 'Y' for yearly.
+    Returns:
+        pandas_df_resampled_with_mean_by_status : Pandas dataframe after aggregation with mean value
+        
+    Assumptions:
+        The input dataframe is interpolated and indexed by time. The remaining columns in the input dataframe are float or numeric.
+        Status columns indicate whether the corresponding flow's valve was open or not, so status=1 implies valve was open and Status=0 implies valve was close. Null status values are ignored. 
+    
+    """
+    
+    pandas_df[list(coldict.keys())] = pandas_df[list(coldict.keys())].mul(pandas_df[list(coldict.values())].values, axis=0)
+    
+    pandas_df_resampled_with_mean_by_status  = pandas_df[list(coldict.keys())].resample(aggregation_frequency).mean()
+    
+    return pandas_df_resampled_with_mean_by_status
