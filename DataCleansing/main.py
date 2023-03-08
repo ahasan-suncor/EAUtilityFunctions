@@ -13,7 +13,3 @@ assert r.result.wasSuccessful(), 'Test failed :(. See log above.'
 # COMMAND ----------
 
 
-
-# COMMAND ----------
-
-

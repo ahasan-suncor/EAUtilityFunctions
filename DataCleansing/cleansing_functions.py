@@ -295,10 +295,11 @@ def fill_nan(df:pd.DataFrame, column:List, method:str, limit_max_nulls:int = Non
     Returns:
     df : Pandas dataframe with null values being imputed
     """
+    df = df.sort_index()
     if limit_max_nulls == None:
-       df[columns] = df[columns].interpolate(method=method)
+       df[column] = df[column].interpolate(method=method)
     else:
-       df[columns] = df[columns].interpolate(method=method, limit=limit_max_nulls)
+       df[column] = df[column].interpolate(method=method, limit=limit_max_nulls)
 
     return df
 
