@@ -16,7 +16,9 @@ Each function is categorized, and follows a similar structure below.
 ├── DataTextAnalysis/
 ├── DataVisualization/
 ├── GPSUtilities/ - Functions for working with GPS data
-├── IOUtilities/ - Functions related to input/output
+├── IOUtilities/ 
+│   ├── azure - Functions for working with blob storage
+│   └── pyspark - Functions related to input/output
 ├── Other/ - Some of these might be able to move to other categories
 ├── RFunctions/
 │   ├──DataCleansing/
