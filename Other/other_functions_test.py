@@ -102,28 +102,6 @@ class GetNRowsByColumnTests(unittest.TestCase):
 
 class AddRollingWindowAggregationColumnTests(unittest.TestCase):
 
-    def test_add_rolling_window_aggregation_column_sum(self):
-        spark_df_test = spark.createDataFrame([('2023-03-10 15:27:18', 17)
-                                             , ('2023-03-15 12:27:18', 13)
-                                             , ('2023-03-18 11:27:18', 25)
-                                              ]
-                                             , ['timestamp', 'dollars'])
-        spark_df_test = spark_df_test.withColumn('timestamp', spark_df_test.timestamp.cast('timestamp'))
-        
-        config = {'aggregate_column_name': 'dollars'
-               , 'aggregate_function_name': 'sum'
-                 }
-        spark_df_actual = add_rolling_window_aggregation_column(spark_df_test, config)
-
-        spark_df_expected = spark.createDataFrame([('2023-03-10 15:27:18', 17, 17.0)
-                                                 , ('2023-03-15 12:27:18', 13, 30.0)
-                                                 , ('2023-03-18 11:27:18', 25, 55.0)
-                                                  ]
-                                                 , ['timestamp', 'dollars', 'dollars_rolling_sum'])
-        spark_df_expected = spark_df_expected.withColumn('timestamp', spark_df_expected.timestamp.cast('timestamp'))                                                  
-
-        self.assertEqual(spark_df_actual.collect(), spark_df_expected.collect())
-
     def test_add_rolling_window_aggregation_column_avg(self):
         spark_df_test = spark.createDataFrame([('2023-03-10 15:27:18', 17)
                                              , ('2023-03-15 12:27:18', 13)

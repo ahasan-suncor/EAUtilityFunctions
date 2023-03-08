@@ -1,6 +1,6 @@
 # Databricks notebook source
 from pyspark.sql import DataFrame as SparkDataFrame
-from pyspark.sql.functions import desc, asc, avg, round
+from pyspark.sql.functions import desc, asc, avg, round, sum
 from pyspark.sql.window import Window
 from datetime import datetime, date, time, timedelta
 from typing import List
@@ -82,7 +82,7 @@ def add_rolling_window_aggregation_column(spark_df, config: dict):
         config: A dictionary containing the configuration for the rolling window aggregation.
                 Keys are: aggregate_column_name: The column to perform the aggregation on.
                           order_by_column_name: Name of the column to order the time window by. Defaults to 'timestamp'.
-                          aggregate_function_name: Aggregation function to apply. Defaults to 'avg'. Other options are: 'sum'
+                          aggregate_function_name: Aggregation function to apply. Defaults to 'avg'. 
 
     Returns:
         A new Spark dataframe with the rolling window aggregation values added as a new column.
@@ -91,7 +91,7 @@ def add_rolling_window_aggregation_column(spark_df, config: dict):
     aggregate_column_name = config['aggregate_column_name']
     order_by_column_name = config.get('order_by_column_name', 'timestamp')
     aggregate_function_name = config.get('aggregate_function_name', 'avg')
-    aggregate_function_map = {'avg': avg, 'sum': sum}
+    aggregate_function_map = {'avg': avg}
     aggregate_function = aggregate_function_map.get(aggregate_function_name)
 
     # Include all rows in the dataframe partition when performing the rolling aggregation.
