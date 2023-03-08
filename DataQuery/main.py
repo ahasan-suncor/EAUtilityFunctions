@@ -9,3 +9,7 @@
 
 r = unittest.main(argv = [''], verbosity = 2, exit = False)
 assert r.result.wasSuccessful(), 'Test failed :(. See log above.'
+
+# COMMAND ----------
+
+

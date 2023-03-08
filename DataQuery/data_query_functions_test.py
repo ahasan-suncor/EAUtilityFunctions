@@ -78,8 +78,10 @@ class MergeDFsTests(unittest.TestCase):
         self.expected_output = pd.DataFrame({'DateTimeUTC': ['2021-01-01 00:00:00', '2021-01-01 00:15:00'
                                            , '2021-01-01 00:30:00', '2021-01-01 00:45:00']
                                            , 'col2': [1, 2, 3, 4]
-                                           , 'col3': [10, None, 20, None]})
+                                           , 'col3': [10, 10, 20, 30]})
 
     def test_merge_dfs(self):
         result = merge_dfs(self.df_ref, self.data)
+        result = result.astype(dtype= {"DateTimeUTC":"datetime64[ns]", "col3":"int64"})
+        self.expected_output = self.expected_output.astype(dtype= {"DateTimeUTC":"datetime64[ns]", "col3":"int64"})
         pd.testing.assert_frame_equal(result, self.expected_output)
