@@ -47,7 +47,7 @@ def lemmatize_text(text: str) -> str:
         text: The string containing the text data.
 
     Returns:
-        string: The string containing the text data with unique lemmatized words.
+        string: The string containing the text data with lemmatized words.
     """
     
     lemmatizer = WordNetLemmatizer()
@@ -66,16 +66,8 @@ def lemmatize_text(text: str) -> str:
     lemmatized_words = [lemmatizer.lemmatize(word, pos = get_wordnet_pos(tag))
                        for word, tag in tagged_words]
     
-    # Get unique words while maintaining order.
-    unique_words = []
-    encountered_words = set()
-    for word in lemmatized_words:
-        if word not in encountered_words:
-            encountered_words.add(word)
-            unique_words.append(word)
-    
     # Join the lemmatized words back into a string.
-    text_lemmatized = ' '.join(unique_words)
+    text_lemmatized = ' '.join(lemmatized_words)
     
     return text_lemmatized
 

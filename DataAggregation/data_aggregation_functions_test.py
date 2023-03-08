@@ -224,9 +224,9 @@ class Pd_Resamp_Median_Test(unittest.TestCase):
         pandas_df_expected.set_index('Date',inplace=True)
         pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected, check_freq=False)
         
-class Pd_Resamp_Last_Test(unittest.TestCase):
+class Pd_Resamp_Lastvalue_Test(unittest.TestCase):
     
-    def test_resamp_last_hour(self):
+    def test_resamp_lastvalue_hour(self):
         
         pandas_df_test = pd.DataFrame({'Date': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
                                             , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
@@ -242,7 +242,7 @@ class Pd_Resamp_Last_Test(unittest.TestCase):
 
         columns = ['tag_flow_1', 'tag_flow_2']
         
-        pandas_df_actual = pd_resamp_last(pandas_df_test, columns, 'H')
+        pandas_df_actual = pd_resamp_lastvalue(pandas_df_test, columns, 'H')
         
 
         pandas_df_expected = pd.DataFrame({'Date': ['2022-06-01 6:00', '2022-06-01 7:00', '2022-06-01 8:00']
@@ -254,7 +254,7 @@ class Pd_Resamp_Last_Test(unittest.TestCase):
         pandas_df_expected.set_index('Date',inplace=True)
         pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected, check_freq=False)
         
-    def test_resamp_last_day(self):
+    def test_resamp_lastvalue_day(self):
         
         pandas_df_test = pd.DataFrame({'Date': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
                                             , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
@@ -270,7 +270,7 @@ class Pd_Resamp_Last_Test(unittest.TestCase):
 
         columns = ['tag_flow_1', 'tag_flow_2']
         
-        pandas_df_actual = pd_resamp_last(pandas_df_test, columns, 'D')
+        pandas_df_actual = pd_resamp_lastvalue(pandas_df_test, columns, 'D')
 
         pandas_df_expected = pd.DataFrame({'Date': ['2022-06-01', '2022-06-02', '2022-06-03']
                                   , 'tag_flow_1': [41, 53, 44]
@@ -281,7 +281,7 @@ class Pd_Resamp_Last_Test(unittest.TestCase):
         pandas_df_expected.set_index('Date',inplace=True)
         pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected, check_freq=False)
         
-    def test_resamp_last_month(self):
+    def test_resamp_lastvalue_month(self):
         
         pandas_df_test = pd.DataFrame({'Date': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
                                             , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
@@ -297,7 +297,7 @@ class Pd_Resamp_Last_Test(unittest.TestCase):
 
         columns = ['tag_flow_1', 'tag_flow_2']
         
-        pandas_df_actual = pd_resamp_last(pandas_df_test, columns, 'M')
+        pandas_df_actual = pd_resamp_lastvalue(pandas_df_test, columns, 'M')
 
         pandas_df_expected = pd.DataFrame({'Date': ['2022-06-30', '2022-07-31', '2022-08-31']
                                   , 'tag_flow_1': [41, 53, 44]
@@ -308,7 +308,7 @@ class Pd_Resamp_Last_Test(unittest.TestCase):
         pandas_df_expected.set_index('Date',inplace=True)
         pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected, check_freq=False)
         
-    def test_resamp_last_year(self):
+    def test_resamp_lastvalue_year(self):
         
         pandas_df_test = pd.DataFrame({'Date': ['2020-06-01 6:00', '2020-06-01 6:01', '2020-06-01 6:02'
                                             , '2020-06-01 6:03', '2020-06-01 6:04', '2020-06-01 6:05'
@@ -324,7 +324,7 @@ class Pd_Resamp_Last_Test(unittest.TestCase):
 
         columns = ['tag_flow_1', 'tag_flow_2']
         
-        pandas_df_actual = pd_resamp_last(pandas_df_test, columns, 'Y')
+        pandas_df_actual = pd_resamp_lastvalue(pandas_df_test, columns, 'Y')
 
         pandas_df_expected = pd.DataFrame({'Date': ['2020-12-31', '2021-12-31', '2022-12-31']
                                   , 'tag_flow_1': [41, 53, 44]

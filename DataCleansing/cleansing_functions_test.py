@@ -738,9 +738,13 @@ class ReplacePercentileOutliersWithNullTests(unittest.TestCase):
                        , '2022-06-01 6:21']
          , 'tag_flow_2': [61, 56, 40, 8, 8, 65, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, 64, 56]
         })
+        
 
     def test_replace_percentile_outliers_with_null_single_column(self):
         pandas_df_actual = replace_percentile_outliers_with_null(self.pandas_df_test, ['tag_flow_2'], percentile = 0.9)
+        pandas_df_actual = pandas_df_actual.astype(dtype= {"datetime":"object",
+        "tag_flow_2":"float64"})
+        
         pandas_df_expected = pd.DataFrame(
                                 {'datetime': ['2022-06-01 6:00', '2022-06-01 6:01', '2022-06-01 6:02'
                                             , '2022-06-01 6:03', '2022-06-01 6:04', '2022-06-01 6:05'
@@ -752,6 +756,8 @@ class ReplacePercentileOutliersWithNullTests(unittest.TestCase):
                                             , '2022-06-01 6:21']
                                  , 'tag_flow_2': [None, 56, 40, 8, 8, None, 59, 56, 41, 8, 8, 53, 46, 44, 57, 48, 40, 8, 8, 8, None, 56]
                                 })
+        pandas_df_expected = pandas_df_expected.astype(dtype= {"datetime":"object",
+        "tag_flow_2":"float64"})
         pd.testing.assert_frame_equal(pandas_df_actual, pandas_df_expected)
 
 # COMMAND ----------

@@ -32,12 +32,12 @@ class TestLemmatizeText(unittest.TestCase):
 
     def test_lemmatize_text_with_punctuation(self):
         input_text = 'am, are, is!'
-        expected_output = 'be'
+        expected_output = 'be be be'
         self.assertEqual(lemmatize_text(input_text), expected_output)
 
     def test_lemmatize_text_with_same_word(self):
         input_text = "car, cars, car's, cars'"
-        expected_output = 'car'
+        expected_output = 'car car car car'
         self.assertEqual(lemmatize_text(input_text), expected_output)
         
     def test_lemmatize_text_sentence(self):
@@ -45,7 +45,7 @@ class TestLemmatizeText(unittest.TestCase):
         expected_output = 'The striped bat be hang on their foot for best'
         self.assertEqual(lemmatize_text(input_text), expected_output)
         
-    def test_lemmatize_text_multiple_words(self):
-        input_text = 'organize, organizes, and organizing'
-        expected_output = 'organize and'
+    def test_lemmatize_text_with_a_verb(self):
+        input_text = 'organizeing,'
+        expected_output = 'organize'
         self.assertEqual(lemmatize_text(input_text), expected_output)

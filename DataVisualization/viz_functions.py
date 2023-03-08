@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import matplotlib.colors as clr
 import matplotlib 
 
-def two_var_scatterplot(pandas_df: pd.DataFrame, 
+def create_two_var_scatterplot(pandas_df: pd.DataFrame, 
                         x_col_name: str, 
                         y_col_name: str, 
                         z_col_name: str,
@@ -37,6 +37,7 @@ def two_var_scatterplot(pandas_df: pd.DataFrame,
         where the first argument in each tuple is the position to transition and the second is the color as 
         named color or hex code
     """
+
     # set size in pixel if passed
     if size:
         width = size[0]
@@ -60,7 +61,7 @@ def two_var_scatterplot(pandas_df: pd.DataFrame,
         
     return fig
 
-def n_var_histogram(pandas_df: pd.DataFrame, 
+def create_n_var_histogram(pandas_df: pd.DataFrame, 
                     col_names: list,
                     bin_size: float = None,
                     title: str = None,
@@ -118,7 +119,7 @@ def n_var_histogram(pandas_df: pd.DataFrame,
     
     return fig
 
-def outlier_plot(pandas_df: pd.DataFrame, 
+def create_outlier_plot(pandas_df: pd.DataFrame, 
                  col_names: list,
                  title: str = None,
                  size: tuple = None
@@ -138,6 +139,7 @@ def outlier_plot(pandas_df: pd.DataFrame,
     Assumptions:
         Assumes the data passed is the subset you want to plot (i.e. pandas_df.iloc[0:100], etc.)
     """
+    
     # create Dataframe of only columns wanted
     data = pandas_df[col_names]
 
@@ -157,7 +159,7 @@ def outlier_plot(pandas_df: pd.DataFrame,
     
     return fig
 
-def n_var_scatterplot(pandas_df: pd.DataFrame, 
+def create_n_var_scatterplot(pandas_df: pd.DataFrame, 
                       col_names: list = None,
                       z_col_name: str = None,
                       title: str = None,
@@ -204,7 +206,7 @@ def n_var_scatterplot(pandas_df: pd.DataFrame,
     
     return fig
 
-def cluster_stack_barplot(pandas_df: pd.DataFrame, 
+def create_cluster_stack_barplot(pandas_df: pd.DataFrame, 
                           x_axis_variable: str,
                           y_axis_variable: str,
                           group_by_variable: str,
@@ -232,8 +234,18 @@ def cluster_stack_barplot(pandas_df: pd.DataFrame,
         A Matplotlib Figure object that can be used to print
 
     Assumptions:
-        Assumes the data passed has been groupby and aggregated
+        Assumes the data passed has been groupby and aggregated like below
+        #             StationName  Month  Cnt             DayType
+        # 0        CALGARY INTL A      1  312       AboveZeroDays
+        # 1        CALGARY INTL A      2  231       AboveZeroDays
+        # 2        CALGARY INTL A      3  327       AboveZeroDays
+        # 3        CALGARY INTL A      4  353       AboveZeroDays
+        # 4        CALGARY INTL A      5  591       AboveZeroDays
+        # ..                  ...    ...  ...                 ...
+        # 43  RED DEER REGIONAL A      5   18  BelowEqualZeroDays
+        # 44  RED DEER REGIONAL A      9    5  BelowEqualZeroDays
     """
+    
     # set size in pixel if passed
     if size:
         width = size[0]
