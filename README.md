@@ -18,7 +18,7 @@ Each function is categorized, and follows a similar structure below.
 ├── GPSUtilities/ - Functions for working with GPS data
 ├── IOUtilities/ 
 │   ├── azure - Functions for working with blob storage
-│   └── pyspark - Functions related to input/output
+│   └── pyspark - Functions related to input/output using PySpark
 ├── Other/ - Some of these might be able to move to other categories
 ├── RFunctions/
 │   ├──DataCleansing/
@@ -26,7 +26,7 @@ Each function is categorized, and follows a similar structure below.
 ```
 
 ## Usage
-These functions were created in Jupyter notebooks using Azure Databricks. To use these functions, you can clone the repository and import the notebooks.
+These functions were created in Jupyter notebooks using Azure Databricks. The cluster used was `10.4 LTS (includes Apache Spark 3.2.1, Scala 2.12) `. To use these functions, you can clone the repository and import the notebooks.
 
 ```git clone https://github.com/ahasan-suncor/EAUtilityFunctions.git```
 
