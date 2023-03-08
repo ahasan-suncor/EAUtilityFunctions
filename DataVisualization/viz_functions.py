@@ -232,7 +232,16 @@ def cluster_stack_barplot(pandas_df: pd.DataFrame,
         A Matplotlib Figure object that can be used to print
 
     Assumptions:
-        Assumes the data passed has been groupby and aggregated
+        Assumes the data passed has been groupby and aggregated like below
+        #             StationName  Month  Cnt             DayType
+        # 0        CALGARY INTL A      1  312       AboveZeroDays
+        # 1        CALGARY INTL A      2  231       AboveZeroDays
+        # 2        CALGARY INTL A      3  327       AboveZeroDays
+        # 3        CALGARY INTL A      4  353       AboveZeroDays
+        # 4        CALGARY INTL A      5  591       AboveZeroDays
+        # ..                  ...    ...  ...                 ...
+        # 43  RED DEER REGIONAL A      5   18  BelowEqualZeroDays
+        # 44  RED DEER REGIONAL A      9    5  BelowEqualZeroDays
     """
     # set size in pixel if passed
     if size:
