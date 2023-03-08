@@ -169,7 +169,8 @@ def fill_timeseries_x_interval(spark_df: SparkDataFrame, timeseries_column_name:
   
 def impute_process_data(spark_df: SparkDataFrame, tag_dict: SparkDataFrame, timeseries_column_name: str = 'timestamp') -> SparkDataFrame:
     """
-    Imputes the null values in a dataframe based on imputation methods (backfill, forwardfill and linear interpolation) and the imputation window (in number of rows) specified in the tag dictionary for each tag.
+    Imputes the null values in a dataframe based on imputation methods (backfill, forwardfill and linear interpolation)
+    and the imputation window (in number of rows) specified in the tag dictionary for each tag.
 
     Args:
         spark_df: The Spark DataFrame to be imputed.
@@ -284,17 +285,19 @@ def replace_range_outliers_with_null(pandas_df: pd.DataFrame, outliers_info_dict
 
 def fill_nan(df:pd.DataFrame, column:List, method:str, limit_max_nulls:int = None):
     """
-    Imputes the null values in a dataframe for the columns specified in the column list based on the specified method. Limit for the maximum number of null values to be imputed can be specified.
+    Imputes the null values in a dataframe for the columns specified in the column list based on the specified method.
+    Limit for the maximum number of null values to be imputed can be specified.
     
     Args: 
-    df : Pandas dataframe with datetime as Index
-    column : list of column names
-    method: imputation methods {'bfill', 'pad', 'ffill', 'interpolate', 'time'}
-    limit_max_nulls: maximum number of null samples to be imputed
+        df: Pandas dataframe with datetime as Index
+        column: list of column names
+        method: imputation methods {'bfill', 'pad', 'ffill', 'interpolate', 'time'}
+        limit_max_nulls: maximum number of null samples to be imputed
     
     Returns:
-    df : Pandas dataframe with null values being imputed
+        df: Pandas dataframe with null values being imputed
     """
+
     df = df.sort_index()
     if limit_max_nulls == None:
        df[column] = df[column].interpolate(method=method)
