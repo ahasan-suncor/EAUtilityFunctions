@@ -2,9 +2,9 @@
 import pandas as pd
 import unittest
 
-class test_plotting_functions(unittest.TestCase):
+class CreateTwoVarScatterplotTests(unittest.TestCase):
 
-    def test_two_var_scatterplot(self):
+    def test_create_two_var_scatterplot_axes_labels(self):
 
         # input data
         df = pd.DataFrame({
@@ -22,7 +22,7 @@ class test_plotting_functions(unittest.TestCase):
         size=(1000,800)
 
         # call function and create figure object to test
-        fig = two_var_scatterplot(pandas_df=df, 
+        fig = create_two_var_scatterplot(pandas_df=df, 
                                 x_col_name=x_col_name, 
                                 y_col_name=y_col_name, 
                                 z_col_name=z_col_name,
@@ -50,7 +50,10 @@ class test_plotting_functions(unittest.TestCase):
         self.assertEqual(fig.to_ordered_dict()['layout']['coloraxis']['colorbar']['title']['text'], z_col_name)
         self.assertEqual((fig.to_ordered_dict()['layout']['width'], fig.to_ordered_dict()['layout']['height']), size)
 
-    def test_n_var_histogram(self):
+
+class CreateNVarHistogramTests(unittest.TestCase):
+
+    def test_create_n_var_histogram_axes_labels(self):
 
         # input data
         df = pd.DataFrame({
@@ -67,7 +70,7 @@ class test_plotting_functions(unittest.TestCase):
         size=(800,500)
     
         # call function and create figure object to test
-        fig = n_var_histogram(pandas_df=df, 
+        fig = create_n_var_histogram(pandas_df=df, 
                                      col_names=col_names, 
                                      bin_size=bin_size, 
                                      title=title, 
@@ -95,6 +98,9 @@ class test_plotting_functions(unittest.TestCase):
         col_names_output = [fig.to_ordered_dict()['data'][0]['name'], fig.to_ordered_dict()['data'][1]['name'], fig.to_ordered_dict()['data'][2]['name']]
         self.assertListEqual(col_names_output, col_names)
 
+
+class CreateOutlierPlotTests(unittest.TestCase):
+
     def test_outlier_plot(self):
 
         # input data
@@ -110,7 +116,7 @@ class test_plotting_functions(unittest.TestCase):
         size=(800,500)
 
         # call function and create figure object to test
-        fig = outlier_plot(pandas_df=df, 
+        fig = create_outlier_plot(pandas_df=df, 
                                   col_names=col_names, 
                                   title=title, 
                                   size=size)
@@ -131,7 +137,9 @@ class test_plotting_functions(unittest.TestCase):
         self.assertEqual(fig.to_ordered_dict()['layout']['title']['text'], title)
         self.assertEqual((fig.to_ordered_dict()['layout']['width'], fig.to_ordered_dict()['layout']['height']), size)
 
-    def test_n_var_scatterplot(self):
+class CreateNVarScattePlotTests(unittest.TestCase):
+
+    def test_create_n_var_scatterplot(self):
 
         # input data
         df = pd.DataFrame({
@@ -147,7 +155,7 @@ class test_plotting_functions(unittest.TestCase):
         size=(800,500)
 
         # call function and create figure object to test
-        fig = n_var_scatterplot(pandas_df=df,
+        fig = create_n_var_scatterplot(pandas_df=df,
                         col_names=col_names,
                         z_col_name=z_col_name,
                         title=title,
@@ -160,7 +168,9 @@ class test_plotting_functions(unittest.TestCase):
         col_names_output = [fig.to_ordered_dict()['data'][0]['dimensions'][0]['label'], fig.to_ordered_dict()['data'][0]['dimensions'][1]['label'], fig.to_ordered_dict()['data'][0]['dimensions'][2]['label']]
         self.assertListEqual(col_names_output, col_names)
 
-    def test_cluster_stack_barplot(self):
+class CreateClusterStackBarPlotTests(unittest.TestCase):
+
+    def test_create_cluster_stack_barplot(self):
         
         # input data
         df = pd.DataFrame({
@@ -180,7 +190,7 @@ class test_plotting_functions(unittest.TestCase):
         title='Weather Data Grouped for Above and Below Zero Days'
         size=(1000, 800)
         
-        fig = cluster_stack_barplot(pandas_df=df, 
+        fig = create_cluster_stack_barplot(pandas_df=df, 
                                            x_axis_variable=x_axis_variable, 
                                            y_axis_variable=y_axis_variable, 
                                            group_by_variable=group_by_variable, 
